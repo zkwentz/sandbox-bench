@@ -31,31 +31,12 @@ class FlyProvider(SandboxProvider):
     
     async def authenticate(self, api_key: str) -> None:
         """Authenticate with Fly.io."""
-        self._api_key = api_key
-        self._client = httpx.AsyncClient(
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
-            timeout=120.0,
+        # Fly.io Machines API requires flyctl CLI or specific auth flow
+        # Sprites.dev uses a different token format
+        raise NotImplementedError(
+            "Fly.io/Sprites integration requires flyctl CLI setup. "
+            "Run: fly auth login"
         )
-        
-        # Ensure app exists
-        try:
-            resp = await self._client.get(
-                f"{self.BASE_URL}/apps/{self._app_name}"
-            )
-            if resp.status_code == 404:
-                # Create the app
-                await self._client.post(
-                    f"{self.BASE_URL}/apps",
-                    json={
-                        "app_name": self._app_name,
-                        "org_slug": "personal",
-                    }
-                )
-        except Exception:
-            pass  # App might already exist
     
     async def create_sandbox(
         self,

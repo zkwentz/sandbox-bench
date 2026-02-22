@@ -29,18 +29,12 @@ class CodeSandboxProvider(SandboxProvider):
     
     async def authenticate(self, api_key: str) -> None:
         """Authenticate with CodeSandbox."""
-        self._api_key = api_key
-        self._client = httpx.AsyncClient(
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
-            timeout=60.0,
+        # CodeSandbox requires their JS SDK (@codesandbox/sdk)
+        # Python REST API not available - see https://codesandbox.io/docs/sdk
+        raise NotImplementedError(
+            "CodeSandbox requires their JavaScript SDK. "
+            "Install: npm install @codesandbox/sdk"
         )
-        # Verify auth by listing sandboxes
-        resp = await self._client.get(f"{self.BASE_URL}/sandboxes")
-        if resp.status_code == 401:
-            raise ValueError("Invalid CodeSandbox API key")
     
     async def create_sandbox(
         self,
