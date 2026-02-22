@@ -5,6 +5,8 @@ It expects the container to expose an HTTP server on port 8000
 with /health, /execute, /write_file, /read_file endpoints.
 """
 
+from __future__ import annotations
+
 import asyncio
 import os
 import subprocess

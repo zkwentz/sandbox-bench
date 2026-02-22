@@ -1,36 +1,70 @@
-# sandbox-bench 🏎️
+# sandbox-bench
 
-Open source benchmark suite for AI agent sandbox providers.
+Open-source benchmark suite for AI agent sandbox providers.
 
-**Measure what matters:** Time, cost, errors, and friction when an AI agent onboards to your sandbox.
+**Measure what matters:** Time, cost, errors, friction, and capabilities when an AI agent uses your sandbox.
+
+**[View live results dashboard](https://zkwentz.github.io/sandbox-bench/)**
 
 ## Why?
 
-AI agents are the new power users. They don't read your UI — they parse your docs, call your API, and move on. This benchmark measures how well sandbox providers serve AI agents.
+AI agents are the new power users. They don't read your UI — they parse your docs, call your API, and move on. Whether you're building RL training loops, agentic coding assistants, or autonomous sub-agent pipelines, the sandbox is the bottleneck. This benchmark measures how well sandbox providers serve AI agents across real-world workloads.
 
-## Providers Tested
+## Providers
 
 | Provider | Type | Status |
 |----------|------|--------|
-| [E2B](https://e2b.dev) | Firecracker microVM | ✅ Supported |
-| [Daytona](https://daytona.io) | Docker | ✅ Supported |
-| [Modal](https://modal.com) | Container | ✅ Supported |
-| [CodeSandbox](https://codesandbox.io) | Docker | ✅ Supported |
-| [Fly.io Machines](https://fly.io) | Firecracker | ✅ Supported |
-| [Freestyle](https://freestyle.sh) | Container | ✅ Supported |
-| [Blaxel](https://blaxel.ai) | Container | ✅ Supported |
-| Custom | Any | ✅ Pluggable |
+| [E2B](https://e2b.dev) | Firecracker microVM | Supported |
+| [Daytona](https://daytona.io) | Docker | Supported |
+| [Modal](https://modal.com) | Container | Supported |
+| [CodeSandbox](https://codesandbox.io) | Docker | Supported |
+| [Fly.io Machines](https://fly.io) | Firecracker | Supported |
+| Docker Image | Local container | Supported |
+| MicroVM | Local microVM | Supported |
 
-## Metrics
+## Test Suites
 
-| Metric | Description | Weight |
-|--------|-------------|--------|
-| **Time** | Seconds from API key to working sandbox | 30% |
-| **Tool Calls** | Number of API/SDK calls required | 15% |
-| **Friction** | Manual steps or workarounds needed | 15% |
-| **Errors** | Errors encountered during onboarding | 20% |
-| **Cost** | USD cost per benchmark run | 10% |
-| **Discoverability** | How easy to find correct API usage | 10% |
+sandbox-bench runs modular test suites inside a single sandbox lifecycle. Pick what you need or run them all.
+
+| Suite | What it tests | Example phases |
+|-------|--------------|----------------|
+| **basic** | Hello-world execution, file I/O | `execute_hello`, `file_io` |
+| **competitive** | Baekjoon/CP-style: stdin piping, compilation, timeouts | `stdin_piping`, `gcc`, `g++`, `exec_timeout` |
+| **swe** | SWE-bench-style: package install, git, pytest, network | `network_access`, `pip_install`, `git_clone`, `pytest` |
+| **environment** | Complex onramp: Node.js, npm, venv, multi-step builds | `nodejs`, `npm`, `project_clone`, `multi_step_build` |
+| **performance** | Agent spawn latency, warm start, file I/O throughput | `agent_spawn`, `warm_start`, `rapid_exec`, `file_io_10mb` |
+| **full** | All of the above | — |
+
+Default is `basic` for fast iteration. Use `--suite full` for comprehensive benchmarking.
+
+## Scoring
+
+Metrics are weighted and normalized to produce a 0–100 score.
+
+**Base weights** (basic suite only):
+
+| Metric | Weight | Lower is better? |
+|--------|--------|-------------------|
+| Time | 30% | Yes |
+| Errors | 20% | Yes |
+| Friction | 15% | Yes |
+| Tool Calls | 15% | Yes |
+| Cost | 10% | Yes |
+| Discoverability | 10% | No (higher = better) |
+
+**Full weights** (when extended suites run and capabilities data is present):
+
+| Metric | Weight | Description |
+|--------|--------|-------------|
+| Time | 25% | Seconds from API key to working sandbox |
+| Errors | 20% | Errors encountered during the run |
+| Friction | 15% | Manual steps or workarounds needed |
+| Tool Calls | 10% | Number of API/SDK calls required |
+| Cost | 10% | Provider-specific sandbox cost per run |
+| Discoverability | 10% | How easy to find correct API usage (1–5) |
+| Capabilities | 10% | Fraction of tested capabilities supported |
+
+Grades: **A** (85–100), **B** (70–84), **C** (55–69), **D** (40–54), **F** (0–39)
 
 ## Quick Start
 
@@ -38,17 +72,32 @@ AI agents are the new power users. They don't read your UI — they parse your d
 # Install
 pip install sandbox-bench
 
-# Run benchmark against all providers (needs API keys in env)
+# Or install from source
+git clone https://github.com/zkwentz/sandbox-bench.git
+cd sandbox-bench
+pip install -e ".[e2b,daytona,modal]"
+
+# List available providers and suites
+sandbox-bench list
+sandbox-bench suites
+
+# Run basic suite against all providers with API keys
 sandbox-bench run --all
 
-# Run against specific provider
-sandbox-bench run --provider e2b
+# Run against a specific provider
+sandbox-bench run -p e2b
 
-# Run with specific model
-sandbox-bench run --all --model claude-opus-4
+# Run specific suites
+sandbox-bench run -p e2b -s competitive -s swe
+
+# Run everything
+sandbox-bench run --all --suite full
 
 # Output JSON results
-sandbox-bench run --all --output results.json
+sandbox-bench run --all -o results.json
+
+# Control number of benchmark runs (default: 3)
+sandbox-bench run --all -n 5
 ```
 
 ## Configuration
@@ -62,7 +111,6 @@ export MODAL_TOKEN_ID="..."
 export MODAL_TOKEN_SECRET="..."
 export CODESANDBOX_API_KEY="..."
 export FLY_API_TOKEN="..."
-export ANTHROPIC_API_KEY="..."  # For the benchmark agent
 ```
 
 Or use a `.env` file:
@@ -71,122 +119,63 @@ Or use a `.env` file:
 sandbox-bench run --all --env-file .env
 ```
 
-## The Benchmark Task
-
-The benchmark measures how quickly an AI agent can:
-
-1. **Authenticate** — Use the API key to connect
-2. **Create sandbox** — Spin up a new isolated environment
-3. **Execute code** — Run a simple Python script
-4. **Read output** — Capture stdout/stderr
-5. **File I/O** — Write and read a file
-6. **Cleanup** — Destroy the sandbox
-
-This represents a minimal "hello world" for sandbox providers — the baseline any AI coding agent needs.
-
-## Sample Output
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    sandbox-bench results                         │
-│                    Model: claude-opus-4                          │
-│                    Date: 2026-02-21                              │
-├──────────────┬────────┬───────┬──────────┬────────┬──────┬──────┤
-│ Provider     │ Time   │ Calls │ Friction │ Errors │ Cost │ Grade│
-├──────────────┼────────┼───────┼──────────┼────────┼──────┼──────┤
-│ E2B          │ 43s    │ 13    │ 1        │ 0      │ $0.47│ A    │
-│ Modal        │ 52s    │ 15    │ 1        │ 0      │ $0.38│ A    │
-│ Daytona      │ 2m 8s  │ 19    │ 1        │ 1      │ $0.52│ B    │
-│ Fly.io       │ 2m 45s │ 22    │ 2        │ 1      │ $0.61│ B    │
-│ CodeSandbox  │ 3m 25s │ 32    │ 2        │ 1      │ $2.11│ C    │
-│ Blaxel       │ 3m 46s │ 34    │ 1        │ 1      │ $1.01│ C    │
-└──────────────┴────────┴───────┴──────────┴────────┴──────┴──────┘
-```
-
 ## Adding a Provider
 
 Implement the `SandboxProvider` interface:
 
 ```python
-from sandbox_bench import SandboxProvider, BenchmarkResult
+from sandbox_bench.provider import SandboxProvider, ProviderInfo, register_provider
 
 class MyProvider(SandboxProvider):
     name = "my-provider"
-    
+    info = ProviderInfo(
+        name="my-provider",
+        description="My sandbox provider",
+        docs_url="https://docs.example.com",
+    )
+
     async def authenticate(self, api_key: str) -> None:
         """Connect to the provider."""
         ...
-    
-    async def create_sandbox(self) -> str:
+
+    async def create_sandbox(self, image=None, timeout_seconds=300) -> str:
         """Create a new sandbox, return its ID."""
         ...
-    
-    async def execute(self, sandbox_id: str, code: str) -> tuple[str, str]:
-        """Execute code, return (stdout, stderr)."""
+
+    async def execute(self, sandbox_id, code, language="python", timeout_seconds=30):
+        """Execute code, return (stdout, stderr, exit_code)."""
         ...
-    
-    async def write_file(self, sandbox_id: str, path: str, content: str) -> None:
+
+    async def execute_command(self, sandbox_id, command, timeout_seconds=30):
+        """Execute a shell command, return (stdout, stderr, exit_code)."""
+        ...
+
+    async def write_file(self, sandbox_id, path, content) -> None:
         """Write a file to the sandbox."""
         ...
-    
-    async def read_file(self, sandbox_id: str, path: str) -> str:
+
+    async def read_file(self, sandbox_id, path):
         """Read a file from the sandbox."""
         ...
-    
-    async def destroy(self, sandbox_id: str) -> None:
+
+    async def destroy(self, sandbox_id) -> None:
         """Destroy the sandbox."""
         ...
 
-# Register it
-from sandbox_bench import register_provider
 register_provider(MyProvider)
 ```
 
-## How Scoring Works
-
-### Grade Calculation
-
-```
-Score = (
-    (1 - time_normalized) * 0.30 +
-    (1 - calls_normalized) * 0.15 +
-    (1 - friction_normalized) * 0.15 +
-    (1 - errors_normalized) * 0.20 +
-    (1 - cost_normalized) * 0.10 +
-    discoverability * 0.10
-) * 100
-
-Grade:
-  A  = 85-100
-  B  = 70-84
-  C  = 55-69
-  D  = 40-54
-  F  = 0-39
-```
-
-### Discoverability Score
-
-Rated 1-5 based on:
-- **5/5**: MCP server, OpenAPI spec, or llms.txt
-- **4/5**: Well-structured docs with examples
-- **3/5**: Docs exist but scattered or incomplete
-- **2/5**: Minimal docs, mostly code comments
-- **1/5**: No docs, reverse-engineer required
+`execute_command()` has a default implementation that delegates to `execute(code, language="sh")`, so you only need to override it if your provider has a more efficient shell execution path.
 
 ## Agent Mode
 
-The benchmark can run in "agent mode" where an actual AI agent (Claude, GPT-4, etc.) attempts to use each provider from scratch:
+The benchmark can run in "agent mode" where an AI agent attempts to use each provider from scratch:
 
 ```bash
-# Let Claude figure out each SDK from docs alone
 sandbox-bench run --all --agent-mode --model claude-opus-4
-
-# Compare how different models perform
-sandbox-bench run --provider e2b --agent-mode --model gpt-4o
-sandbox-bench run --provider e2b --agent-mode --model claude-opus-4
 ```
 
-This measures real-world agent experience, not just API performance.
+This measures real-world agent experience — not just API performance.
 
 ## CI Integration
 
@@ -207,10 +196,10 @@ jobs:
         with:
           python-version: '3.11'
       - run: pip install sandbox-bench
-      - run: sandbox-bench run --all --output results.json
+      - run: sandbox-bench run --all --suite full --output results.json
         env:
           E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DAYTONA_API_KEY: ${{ secrets.DAYTONA_API_KEY }}
       - uses: actions/upload-artifact@v4
         with:
           name: benchmark-results
@@ -221,9 +210,9 @@ jobs:
 
 PRs welcome! Especially for:
 - New provider implementations
+- New test suites or phases
 - Improved scoring algorithms
-- Better agent prompts
-- Dashboard/visualization
+- Dashboard visualizations
 
 ## License
 
@@ -231,4 +220,4 @@ MIT
 
 ## Acknowledgments
 
-Inspired by [2027.dev/arena](https://2027.dev/arena) — we wanted an open source version anyone can run and extend.
+Inspired by [2027.dev/arena](https://2027.dev/arena) — we wanted an open-source version anyone can run and extend.

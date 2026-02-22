@@ -1,5 +1,7 @@
 """Fly.io Machines provider implementation."""
 
+from __future__ import annotations
+
 import httpx
 from typing import Optional
 

@@ -7,6 +7,8 @@ It expects the VM to expose an HTTP server with /health, /execute,
 Requires Linux with KVM support.
 """
 
+from __future__ import annotations
+
 import asyncio
 import os
 import shlex

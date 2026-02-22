@@ -448,6 +448,109 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* Capabilities Matrix */
+  .cap-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .cap-matrix th,
+  .cap-matrix td {
+    padding: 10px 14px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .cap-matrix th {
+    background: var(--surface-2);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .cap-matrix th:first-child,
+  .cap-matrix td:first-child {
+    text-align: left;
+    font-weight: 600;
+  }
+
+  .cap-matrix tr:last-child td {
+    border-bottom: none;
+  }
+
+  .cap-yes { color: var(--green); font-weight: 700; }
+  .cap-no { color: var(--red); font-weight: 700; }
+  .cap-na { color: var(--text-muted); }
+
+  /* Performance Bars */
+  .perf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .perf-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .perf-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .perf-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .perf-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 60px;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .perf-label {
+    font-size: 13px;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .perf-bar-track {
+    height: 20px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .perf-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--accent);
+    transition: width 0.6s ease;
+  }
+
+  .perf-value {
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
   /* Scoring Methodology */
   .methodology {
     background: var(--surface);
@@ -559,6 +662,11 @@
       overflow-x: auto;
     }
 
+    .cap-matrix {
+      display: block;
+      overflow-x: auto;
+    }
+
     .header-links { display: none; }
   }
 
@@ -584,6 +692,72 @@
     overflow: hidden;
     text-overflow: ellipsis;
     z-index: 10;
+  }
+
+  /* Info tooltips */
+  .tip {
+    position: relative;
+    cursor: help;
+    border-bottom: 1px dotted var(--text-muted);
+  }
+
+  .tip-bubble {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1c2028;
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text);
+    width: 320px;
+    max-width: 90vw;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    pointer-events: none;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .tip-bubble .tip-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--accent);
+    font-size: 12px;
+  }
+
+  .tip-bubble .tip-why {
+    color: var(--text-muted);
+    font-size: 11px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+
+  .tip-bubble .tip-why strong {
+    color: var(--yellow);
+  }
+
+  .tip:hover .tip-bubble {
+    display: block;
+  }
+
+  /* Flip tooltip below when near top of viewport (applied via JS) */
+  .tip-bubble.flip-below {
+    bottom: auto;
+    top: calc(100% + 8px);
+  }
+
+  /* Adjust for table headers so tooltip doesn't overflow left */
+  .breakdown-table .tip .tip-bubble,
+  .cap-matrix .tip .tip-bubble {
+    left: 0;
+    transform: none;
   }
 </style>
 </head>
@@ -641,7 +815,7 @@
           <th>API Calls</th>
           <th>Friction</th>
           <th>Errors</th>
-          <th>Est. Cost</th>
+          <th>Sandbox Cost</th>
           <th>Discoverability</th>
           <th>Score</th>
           <th>Grade</th>
@@ -651,22 +825,26 @@
     </table>
   </div>
 
+  <!-- Capabilities Matrix -->
+  <div class="section" id="capabilities-section" style="display:none">
+    <h2 class="section-title">Capabilities Matrix</h2>
+    <div class="chart-container" style="overflow-x:auto">
+      <table class="cap-matrix" id="cap-matrix"></table>
+    </div>
+  </div>
+
+  <!-- Performance Metrics -->
+  <div class="section" id="performance-section" style="display:none">
+    <h2 class="section-title">Performance Metrics</h2>
+    <div class="perf-grid" id="perf-grid"></div>
+  </div>
+
   <!-- Phase Timings -->
   <div class="section">
-    <h2 class="section-title">Phase Timings (ms)</h2>
-    <div class="chart-container" id="phase-chart-container">
+    <h2 class="section-title">Phase Timings</h2>
+    <div class="chart-container" id="phase-chart-container" style="overflow-x:auto">
       <table class="breakdown-table" id="phase-table">
-        <thead>
-          <tr>
-            <th>Provider</th>
-            <th>Authenticate</th>
-            <th>Create Sandbox</th>
-            <th>Execute Code</th>
-            <th>File I/O</th>
-            <th>Destroy</th>
-            <th>Total</th>
-          </tr>
-        </thead>
+        <thead id="phase-head"></thead>
         <tbody id="phase-body"></tbody>
       </table>
     </div>
@@ -676,60 +854,12 @@
   <div class="section" id="methodology">
     <h2 class="section-title">Scoring Methodology</h2>
     <div class="methodology">
-      <p style="color: var(--text-muted); margin-bottom: 16px;">
-        Each provider is scored from 0-100 based on six weighted metrics. The benchmark measures the full lifecycle
+      <p style="color: var(--text-muted); margin-bottom: 16px;" id="methodology-desc">
+        Each provider is scored from 0-100 based on weighted metrics. The benchmark measures the full lifecycle
         of an AI agent interacting with a sandbox: authenticate, create, execute code, read/write files, and destroy.
+        When extended suites are run, a Capabilities weight is added and other weights are adjusted.
       </p>
-      <div class="weight-bars">
-        <div class="weight-item">
-          <div class="weight-header">
-            <span class="weight-name">Time</span>
-            <span class="weight-pct">30%</span>
-          </div>
-          <div class="weight-track"><div class="weight-fill" style="width:100%"></div></div>
-          <span style="font-size:11px;color:var(--text-muted)">Seconds from API key to working sandbox</span>
-        </div>
-        <div class="weight-item">
-          <div class="weight-header">
-            <span class="weight-name">Errors</span>
-            <span class="weight-pct">20%</span>
-          </div>
-          <div class="weight-track"><div class="weight-fill" style="width:66%"></div></div>
-          <span style="font-size:11px;color:var(--text-muted)">Errors encountered during onboarding</span>
-        </div>
-        <div class="weight-item">
-          <div class="weight-header">
-            <span class="weight-name">Tool Calls</span>
-            <span class="weight-pct">15%</span>
-          </div>
-          <div class="weight-track"><div class="weight-fill" style="width:50%"></div></div>
-          <span style="font-size:11px;color:var(--text-muted)">Number of API/SDK calls required</span>
-        </div>
-        <div class="weight-item">
-          <div class="weight-header">
-            <span class="weight-name">Friction</span>
-            <span class="weight-pct">15%</span>
-          </div>
-          <div class="weight-track"><div class="weight-fill" style="width:50%"></div></div>
-          <span style="font-size:11px;color:var(--text-muted)">Manual steps or workarounds needed</span>
-        </div>
-        <div class="weight-item">
-          <div class="weight-header">
-            <span class="weight-name">Cost</span>
-            <span class="weight-pct">10%</span>
-          </div>
-          <div class="weight-track"><div class="weight-fill" style="width:33%"></div></div>
-          <span style="font-size:11px;color:var(--text-muted)">USD cost per benchmark run</span>
-        </div>
-        <div class="weight-item">
-          <div class="weight-header">
-            <span class="weight-name">Discoverability</span>
-            <span class="weight-pct">10%</span>
-          </div>
-          <div class="weight-track"><div class="weight-fill" style="width:33%"></div></div>
-          <span style="font-size:11px;color:var(--text-muted)">Docs, MCP server, OpenAPI, llms.txt</span>
-        </div>
-      </div>
+      <div class="weight-bars" id="weight-bars"></div>
       <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
         <p style="font-size: 13px; color: var(--text-muted);">
           <strong style="color: var(--text);">Grades:</strong>
@@ -757,13 +887,173 @@
 
 <script>
 (function() {
-  // Try multiple base paths to find results.
-  // Works locally (from docs/ or root) and on GitHub Pages.
   const PATHS_TO_TRY = [
-    'results/',          // GitHub Pages (_site root) or local from root
-    '../results/',       // Local when opened from docs/
-    './results/',        // Relative fallback
+    'results/',
+    '../results/',
+    './results/',
   ];
+
+  // ── Tooltip definitions ──────────────────────────────────────────────
+  // Each entry: { def: "What it is", why: "Why it matters for RL / agents" }
+  const TIPS = {
+    // Scoring metrics
+    time: {
+      def: 'Wall-clock seconds for the full benchmark lifecycle (auth, create, execute, file I/O, destroy).',
+      why: 'Lower latency means more rollouts per hour in RL training loops. Agents that spin up sandboxes mid-conversation need sub-second times to feel interactive.',
+    },
+    'api calls': {
+      def: 'Number of distinct SDK/API calls required to complete all operations.',
+      why: 'Fewer calls = fewer tokens spent on tool-use formatting. Each extra round-trip adds latency and token cost to every RL episode.',
+    },
+    tool_calls: {
+      def: 'Number of distinct SDK/API calls required to complete all operations.',
+      why: 'Fewer calls = fewer tokens spent on tool-use formatting. Each extra round-trip adds latency and token cost to every RL episode.',
+    },
+    friction: {
+      def: 'Workarounds, retries, or unexpected behaviors the agent had to navigate.',
+      why: 'High friction wastes agent actions on error recovery instead of the task. In RL, friction inflates episode length and dilutes the reward signal.',
+    },
+    errors: {
+      def: 'Exceptions or failures during the benchmark run.',
+      why: 'Errors force agents into recovery paths and can cause entire RL episodes to fail. Reliable sandboxes mean higher episode completion rates and cleaner training signal.',
+    },
+    'sandbox cost': {
+      def: 'Provider-specific USD cost for sandbox runtime (not LLM tokens). Based on published per-second pricing.',
+      why: 'For RL at scale you run thousands of parallel episodes. A 10x cost difference compounds into budget-defining infrastructure decisions.',
+    },
+    cost: {
+      def: 'Provider-specific USD cost for sandbox runtime (not LLM tokens). Based on published per-second pricing.',
+      why: 'For RL at scale you run thousands of parallel episodes. A 10x cost difference compounds into budget-defining infrastructure decisions.',
+    },
+    discoverability: {
+      def: 'Quality of docs, MCP server availability, OpenAPI spec, llms.txt. Scored 1-5.',
+      why: 'Better discoverability lets an LLM agent self-onboard to the API with fewer examples. Critical for zero-shot tool use and reducing prompt engineering overhead.',
+    },
+    capabilities: {
+      def: 'Fraction of tested environment features supported (gcc, pip, git, Node.js, venv, etc.).',
+      why: 'More capabilities means the sandbox can handle diverse SWE-bench tasks without the agent needing to work around missing tools.',
+    },
+    score: {
+      def: 'Weighted composite of all metrics, 0-100. Higher is better.',
+      why: 'A single number to rank sandbox providers for agentic use cases. Weights are tuned for what matters most in RL and coding agent workflows.',
+    },
+
+    // Capabilities
+    stdin_piping: {
+      def: 'Pipe data to a running process via stdin.',
+      why: 'Required for competitive programming where test input is fed via stdin. Without it, agents must write input to files as a workaround.',
+    },
+    gcc: {
+      def: 'GCC C compiler available in the sandbox.',
+      why: 'Needed for C coding challenges, systems programming tasks, and building native extensions that agents may encounter.',
+    },
+    gpp: {
+      def: 'G++ C++ compiler available in the sandbox.',
+      why: 'Required for C++ competitive programming and many open-source projects with C++ build dependencies.',
+    },
+    exec_timeout: {
+      def: 'Server-side execution timeout enforcement. Kills processes that exceed the time limit.',
+      why: 'Prevents infinite loops from hanging the sandbox. Critical for RL where untrusted agent-generated code might loop forever, blocking the episode.',
+    },
+    python3: {
+      def: 'Python 3 runtime available in the sandbox.',
+      why: 'The baseline language for most AI/ML agent tasks, SWE-bench patches, and data science workflows.',
+    },
+    network_access: {
+      def: 'Outbound internet connectivity from inside the sandbox.',
+      why: 'Required for pip install, git clone, API calls. Many sandboxes restrict this for security, limiting what tasks agents can perform.',
+    },
+    pip_install: {
+      def: 'Python package installation via pip.',
+      why: 'Essential for SWE-bench tasks that need project dependencies. Without it, the sandbox is limited to Python stdlib.',
+    },
+    git_clone: {
+      def: 'Clone repositories from GitHub or other remotes.',
+      why: 'Core capability for SWE-bench-style tasks where agents check out code, apply patches, and run tests against real repos.',
+    },
+    pytest: {
+      def: 'pytest test framework execution.',
+      why: 'The standard for verifying code changes in SWE-bench. Agents need to run tests to validate their patches and get reward signal.',
+    },
+    nodejs: {
+      def: 'Node.js runtime available in the sandbox.',
+      why: 'Required for frontend/fullstack tasks, the npm ecosystem, and modern web projects that agents might need to build or test.',
+    },
+    npm: {
+      def: 'npm package manager for installing Node.js dependencies.',
+      why: 'Needed to set up JavaScript/TypeScript project dependencies. Without it, agents cannot work on Node.js codebases.',
+    },
+    project_clone: {
+      def: 'Clone and work with real-world project repositories.',
+      why: 'Tests whether the sandbox handles real codebases beyond toy examples\u2014the actual operating environment for SWE-bench agents.',
+    },
+    multi_step_build: {
+      def: 'Multi-step build pipeline: install deps, compile, run tests.',
+      why: 'The most demanding capability. Tests whether an agent can orchestrate a full development workflow end-to-end in a single sandbox.',
+    },
+    python_venv: {
+      def: 'Python virtual environment creation and use.',
+      why: 'Important for isolating project dependencies and avoiding package conflicts across different tasks in the same sandbox.',
+    },
+    warm_start: {
+      def: 'Speed of creating a second sandbox when the provider has cached/pre-warmed images.',
+      why: 'Represents steady-state latency in high-throughput RL training. Pre-warmed pools let you parallelize thousands of episodes.',
+    },
+
+    // Phases
+    authenticate: {
+      def: 'Validate API credentials with the sandbox provider.',
+      why: 'Auth latency is a fixed overhead on every RL episode. Providers with fast token validation reduce per-episode setup cost.',
+    },
+    create_sandbox: {
+      def: 'Provision and boot a new sandbox environment.',
+      why: 'Cold start time is the latency floor for every new RL episode. Sub-second cold starts enable real-time agentic coding assistants.',
+    },
+    execute: {
+      def: 'Run code inside the sandbox and capture stdout/stderr/exit code.',
+      why: 'The core action loop for coding agents: write code, execute, observe output. Execution latency directly bounds the agent\'s iteration speed.',
+    },
+    execute_hello: {
+      def: 'Run a hello-world Python script to verify basic execution works.',
+      why: 'Validates the most fundamental capability. If this fails, no agentic workflow can run on this provider.',
+    },
+    file_io: {
+      def: 'Write a file to the sandbox and read it back to verify correctness.',
+      why: 'Agents constantly read/write code files, configs, and test outputs. File I/O reliability and speed bounds multi-file SWE-bench tasks.',
+    },
+    destroy: {
+      def: 'Tear down the sandbox and release cloud resources.',
+      why: 'Clean teardown prevents resource leaks. In RL at scale, leaked sandboxes accumulate cost and can exhaust provider quotas.',
+    },
+
+    // Performance
+    cold_start: {
+      def: 'Time to create a fresh sandbox from scratch with no caching.',
+      why: 'This is the worst-case latency for every new RL episode. Sub-second cold starts enable real-time agentic coding assistants.',
+    },
+    warm_start_perf: {
+      def: 'Time to create a sandbox when the provider has cached/pre-warmed images.',
+      why: 'Represents steady-state latency during high-throughput RL training where sandboxes are continuously recycled.',
+    },
+    file_io_throughput: {
+      def: 'Megabytes per second for reading/writing files to the sandbox filesystem.',
+      why: 'Agents frequently write code, read logs, and transfer data. Low throughput bottlenecks multi-file SWE tasks and large repo operations.',
+    },
+
+    // Agent spawn
+    agent_spawn: {
+      def: 'Time from spawning a sub-agent to having its sandbox ready to execute code.',
+      why: 'In agentic architectures, a parent agent spawns child agents with their own sandboxes. This end-to-end latency determines how fast an agent can delegate and parallelize work.',
+    },
+  };
+
+  function tip(key, label) {
+    const t = TIPS[key] || TIPS[label.toLowerCase().replace(/ /g, '_')];
+    if (!t) return label;
+    return `<span class="tip">${label}<span class="tip-bubble"><div class="tip-title">${label}</div>${t.def}<div class="tip-why"><strong>Why it matters:</strong> ${t.why}</div></span></span>`;
+  }
+
+  // ── Utilities ────────────────────────────────────────────────────────
 
   async function fetchJSON(url) {
     try {
@@ -800,6 +1090,14 @@
     return colors[grade] || '#8b949e';
   }
 
+  function getCostDisplay(r) {
+    const cost = r.sandbox_cost_usd !== undefined ? r.sandbox_cost_usd : r.estimated_cost_usd;
+    if (cost < 0.01) return '$' + cost.toFixed(4);
+    return '$' + cost.toFixed(2);
+  }
+
+  // ── Renderers ────────────────────────────────────────────────────────
+
   function renderScoreChart(results) {
     const container = document.getElementById('score-chart');
     const sorted = [...results].sort((a, b) => b.score - a.score);
@@ -815,7 +1113,6 @@
       </div>
     `).join('');
 
-    // Animate bars
     requestAnimationFrame(() => {
       container.querySelectorAll('.chart-bar').forEach(bar => {
         bar.style.width = bar.style.width;
@@ -831,6 +1128,8 @@
       const failed = !r.success;
       const errorMsg = r.error_messages && r.error_messages.length > 0
         ? r.error_messages[0] : '';
+      const capCount = r.capabilities ? Object.keys(r.capabilities).length : 0;
+      const capSupported = r.capabilities ? Object.values(r.capabilities).filter(v => v).length : 0;
 
       return `
         <div class="provider-card ${failed ? 'failed' : ''}" onclick="toggleTrace('trace-${i}')">
@@ -843,35 +1142,41 @@
             </div>
             <div class="provider-metrics">
               <div class="metric">
-                <span class="metric-label">Time</span>
+                <span class="metric-label">${tip('time', 'Time')}</span>
                 <span class="metric-value">${formatTime(r.total_time_seconds)}</span>
               </div>
               <div class="metric">
-                <span class="metric-label">API Calls</span>
+                <span class="metric-label">${tip('tool_calls', 'API Calls')}</span>
                 <span class="metric-value">${r.tool_calls}</span>
               </div>
               <div class="metric">
-                <span class="metric-label">Friction</span>
+                <span class="metric-label">${tip('friction', 'Friction')}</span>
                 <span class="metric-value">${r.friction_points}</span>
               </div>
               <div class="metric">
-                <span class="metric-label">Errors</span>
+                <span class="metric-label">${tip('errors', 'Errors')}</span>
                 <span class="metric-value ${r.errors > 0 ? 'status-fail' : 'status-pass'}">${r.errors}</span>
               </div>
               <div class="metric">
-                <span class="metric-label">Est. Cost</span>
-                <span class="metric-value">$${r.estimated_cost_usd.toFixed(2)}</span>
+                <span class="metric-label">${tip('cost', 'Sandbox Cost')}</span>
+                <span class="metric-value">${getCostDisplay(r)}</span>
               </div>
               <div class="metric">
-                <span class="metric-label">Discoverability</span>
+                <span class="metric-label">${tip('discoverability', 'Discoverability')}</span>
                 <span class="metric-value">${r.discoverability_score}/5</span>
               </div>
+              ${capCount > 0 ? `
+              <div class="metric">
+                <span class="metric-label">${tip('capabilities', 'Capabilities')}</span>
+                <span class="metric-value">${capSupported}/${capCount}</span>
+              </div>
+              ` : ''}
             </div>
             ${renderTrace(r.trace, i)}
           </div>
           <div class="score-display">
             <div class="score-number" style="color: ${gradeColor(r.grade)}">${r.score}</div>
-            <div class="score-label">score</div>
+            <div class="score-label">${tip('score', 'score')}</div>
           </div>
         </div>
       `;
@@ -889,11 +1194,12 @@
         <div class="trace-timeline">
           ${trace.map(t => {
             const height = Math.max(8, (t.duration_ms / maxDuration) * 60);
+            const label = t.action.replace(/_/g, ' ');
             return `
               <div class="trace-step">
                 <div class="trace-duration">${formatMs(t.duration_ms)}</div>
                 <div class="trace-bar ${t.success ? 'success' : 'failure'}" style="height: ${height}px"></div>
-                <div class="trace-label">${t.action.replace('_', ' ')}</div>
+                <div class="trace-label">${label}</div>
               </div>
             `;
           }).join('')}
@@ -919,7 +1225,7 @@
         <td>${r.tool_calls}</td>
         <td>${r.friction_points}</td>
         <td class="${r.errors > 0 ? 'status-fail' : ''}">${r.errors}</td>
-        <td>$${r.estimated_cost_usd.toFixed(2)}</td>
+        <td>${getCostDisplay(r)}</td>
         <td>${r.discoverability_score}/5</td>
         <td style="font-weight:600">${r.score}</td>
         <td><span class="mini-grade grade-${r.grade}">${r.grade}</span></td>
@@ -927,10 +1233,176 @@
     `).join('');
   }
 
-  function renderPhaseTimings(results) {
-    const body = document.getElementById('phase-body');
-    const phases = ['authenticate', 'create_sandbox', 'execute', 'file_io', 'destroy'];
+  function renderBreakdownHeaders() {
+    const headerRow = document.querySelector('.breakdown-table thead tr');
+    if (!headerRow) return;
+    const headers = [
+      { key: null, label: 'Provider' },
+      { key: null, label: 'Status' },
+      { key: 'time', label: 'Time' },
+      { key: 'tool_calls', label: 'API Calls' },
+      { key: 'friction', label: 'Friction' },
+      { key: 'errors', label: 'Errors' },
+      { key: 'cost', label: 'Sandbox Cost' },
+      { key: 'discoverability', label: 'Discoverability' },
+      { key: 'score', label: 'Score' },
+      { key: null, label: 'Grade' },
+    ];
+    headerRow.innerHTML = headers.map(h =>
+      `<th>${h.key ? tip(h.key, h.label) : h.label}</th>`
+    ).join('');
+  }
+
+  function renderCapabilitiesMatrix(results) {
+    const section = document.getElementById('capabilities-section');
+    const table = document.getElementById('cap-matrix');
+
+    const allCaps = new Set();
+    results.forEach(r => {
+      if (r.capabilities) Object.keys(r.capabilities).forEach(c => allCaps.add(c));
+    });
+
+    if (allCaps.size === 0) {
+      section.style.display = 'none';
+      return;
+    }
+
+    section.style.display = '';
+    const caps = [...allCaps].sort();
+
+    let html = '<thead><tr><th>Provider</th>';
+    caps.forEach(c => {
+      const label = c.replace(/_/g, ' ');
+      html += `<th>${tip(c, label)}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+
     const sorted = [...results].sort((a, b) => b.score - a.score);
+    sorted.forEach(r => {
+      html += `<tr><td><div class="provider-cell"><span class="mini-grade grade-${r.grade}">${r.grade}</span> ${r.provider}</div></td>`;
+      caps.forEach(c => {
+        if (!r.capabilities || r.capabilities[c] === undefined) {
+          html += '<td class="cap-na">-</td>';
+        } else if (r.capabilities[c]) {
+          html += '<td class="cap-yes">Y</td>';
+        } else {
+          html += '<td class="cap-no">N</td>';
+        }
+      });
+      html += '</tr>';
+    });
+    html += '</tbody>';
+
+    table.innerHTML = html;
+  }
+
+  function renderPerformanceMetrics(results) {
+    const section = document.getElementById('performance-section');
+    const grid = document.getElementById('perf-grid');
+
+    const hasColdStart = results.some(r => r.cold_start_seconds > 0);
+    const hasWarmStart = results.some(r => r.warm_start_seconds !== undefined && r.warm_start_seconds !== null);
+    const hasFileIO = results.some(r => r.file_io_throughput_mbps !== undefined && r.file_io_throughput_mbps !== null);
+    const hasAgentSpawn = results.some(r => r.agent_spawn_seconds !== undefined && r.agent_spawn_seconds !== null);
+
+    if (!hasColdStart && !hasWarmStart && !hasFileIO && !hasAgentSpawn) {
+      section.style.display = 'none';
+      return;
+    }
+
+    section.style.display = '';
+    const sorted = [...results].sort((a, b) => b.score - a.score);
+    let html = '';
+
+    // Cold vs Warm Start
+    if (hasColdStart) {
+      const maxStart = Math.max(...sorted.map(r => Math.max(r.cold_start_seconds || 0, r.warm_start_seconds || 0, r.agent_spawn_seconds || 0)), 0.1);
+      html += `<div class="perf-card"><h3>${tip('cold_start', 'Sandbox Start Time (seconds)')}</h3><div class="perf-rows">`;
+      sorted.forEach(r => {
+        const cold = r.cold_start_seconds || 0;
+        const warm = r.warm_start_seconds;
+        const spawn = r.agent_spawn_seconds;
+        const pct = (cold / maxStart) * 100;
+        html += `<div class="perf-row">
+          <div class="perf-label">${r.provider}</div>
+          <div class="perf-bar-track"><div class="perf-bar-fill" style="width:${pct}%;background:var(--accent)"></div></div>
+          <div class="perf-value">${cold.toFixed(2)}s</div>
+        </div>`;
+        if (warm !== undefined && warm !== null) {
+          const warmPct = (warm / maxStart) * 100;
+          html += `<div class="perf-row">
+            <div class="perf-label" style="font-size:11px;color:var(--text-muted)">&nbsp;&nbsp;${tip('warm_start_perf', 'warm')}</div>
+            <div class="perf-bar-track"><div class="perf-bar-fill" style="width:${warmPct}%;background:var(--green)"></div></div>
+            <div class="perf-value" style="color:var(--green)">${warm.toFixed(2)}s</div>
+          </div>`;
+        }
+        if (spawn !== undefined && spawn !== null) {
+          const spawnPct = (spawn / maxStart) * 100;
+          html += `<div class="perf-row">
+            <div class="perf-label" style="font-size:11px;color:var(--text-muted)">&nbsp;&nbsp;${tip('agent_spawn', 'agent spawn')}</div>
+            <div class="perf-bar-track"><div class="perf-bar-fill" style="width:${spawnPct}%;background:var(--yellow)"></div></div>
+            <div class="perf-value" style="color:var(--yellow)">${spawn.toFixed(2)}s</div>
+          </div>`;
+        }
+      });
+      html += '</div></div>';
+    }
+
+    // File I/O Throughput
+    if (hasFileIO) {
+      const maxTP = Math.max(...sorted.map(r => r.file_io_throughput_mbps || 0), 0.1);
+      html += `<div class="perf-card"><h3>${tip('file_io_throughput', 'File I/O Throughput (MB/s)')}</h3><div class="perf-rows">`;
+      sorted.forEach(r => {
+        const tp = r.file_io_throughput_mbps;
+        if (tp !== undefined && tp !== null) {
+          const pct = (tp / maxTP) * 100;
+          html += `<div class="perf-row">
+            <div class="perf-label">${r.provider}</div>
+            <div class="perf-bar-track"><div class="perf-bar-fill" style="width:${pct}%"></div></div>
+            <div class="perf-value">${tp.toFixed(1)}</div>
+          </div>`;
+        } else {
+          html += `<div class="perf-row">
+            <div class="perf-label">${r.provider}</div>
+            <div class="perf-bar-track"></div>
+            <div class="perf-value cap-na">-</div>
+          </div>`;
+        }
+      });
+      html += '</div></div>';
+    }
+
+    grid.innerHTML = html;
+  }
+
+  function renderPhaseTimings(results) {
+    const head = document.getElementById('phase-head');
+    const body = document.getElementById('phase-body');
+    const sorted = [...results].sort((a, b) => b.score - a.score);
+
+    const allPhases = [];
+    const phaseSet = new Set();
+    sorted.forEach(r => {
+      if (r.trace) {
+        r.trace.forEach(t => {
+          if (!phaseSet.has(t.action)) {
+            phaseSet.add(t.action);
+            allPhases.push(t.action);
+          }
+        });
+      }
+    });
+
+    // Build header with tooltips
+    let headerHtml = '<tr><th>Provider</th>';
+    allPhases.forEach(p => {
+      const label = p.replace(/_/g, ' ');
+      // Try exact key, then the base name (strip suite/ prefix)
+      const baseKey = p.includes('/') ? p.split('/').pop() : p;
+      headerHtml += `<th>${tip(baseKey, label)}</th>`;
+    });
+    headerHtml += '<th>Total</th></tr>';
+    head.innerHTML = headerHtml;
 
     body.innerHTML = sorted.map(r => {
       const timings = {};
@@ -944,24 +1416,70 @@
       return `
         <tr>
           <td><div class="provider-cell"><span class="mini-grade grade-${r.grade}">${r.grade}</span> ${r.provider}</div></td>
-          ${phases.map(p => `<td>${timings[p] !== undefined ? formatMs(timings[p]) : '-'}</td>`).join('')}
+          ${allPhases.map(p => `<td>${timings[p] !== undefined ? formatMs(timings[p]) : '-'}</td>`).join('')}
           <td style="font-weight:600">${total > 0 ? formatMs(total) : '-'}</td>
         </tr>
       `;
     }).join('');
   }
 
+  function renderMethodologyWeights(results) {
+    const container = document.getElementById('weight-bars');
+    const hasCaps = results.some(r => r.capabilities && Object.keys(r.capabilities).length > 0);
+
+    const weights = hasCaps
+      ? [
+          { key: 'time', name: 'Time', pct: 25 },
+          { key: 'errors', name: 'Errors', pct: 20 },
+          { key: 'friction', name: 'Friction', pct: 15 },
+          { key: 'tool_calls', name: 'Tool Calls', pct: 10 },
+          { key: 'cost', name: 'Cost', pct: 10 },
+          { key: 'discoverability', name: 'Discoverability', pct: 10 },
+          { key: 'capabilities', name: 'Capabilities', pct: 10 },
+        ]
+      : [
+          { key: 'time', name: 'Time', pct: 30 },
+          { key: 'errors', name: 'Errors', pct: 20 },
+          { key: 'tool_calls', name: 'Tool Calls', pct: 15 },
+          { key: 'friction', name: 'Friction', pct: 15 },
+          { key: 'cost', name: 'Cost', pct: 10 },
+          { key: 'discoverability', name: 'Discoverability', pct: 10 },
+        ];
+
+    const maxPct = Math.max(...weights.map(w => w.pct));
+    container.innerHTML = weights.map(w => {
+      const t = TIPS[w.key];
+      const desc = t ? t.def : '';
+      return `
+      <div class="weight-item">
+        <div class="weight-header">
+          <span class="weight-name">${tip(w.key, w.name)}</span>
+          <span class="weight-pct">${w.pct}%</span>
+        </div>
+        <div class="weight-track"><div class="weight-fill" style="width:${(w.pct / maxPct) * 100}%"></div></div>
+        <span style="font-size:11px;color:var(--text-muted)">${desc}</span>
+      </div>
+    `}).join('');
+  }
+
+  // ── Main ─────────────────────────────────────────────────────────────
+
   function renderAll(data) {
     const config = data.config;
     const results = data.results;
 
+    const suitesInfo = config.suites ? ` &middot; suites: ${config.suites.join(', ')}` : '';
     document.getElementById('run-info').innerHTML =
-      `${results.length} providers &middot; ${config.runs} runs each &middot; best-of-N scoring`;
+      `${results.length} providers &middot; ${config.runs} runs each &middot; best-of-N scoring${suitesInfo}`;
 
     renderScoreChart(results);
     renderLeaderboard(results);
+    renderBreakdownHeaders();
     renderBreakdown(results);
+    renderCapabilitiesMatrix(results);
+    renderPerformanceMetrics(results);
     renderPhaseTimings(results);
+    renderMethodologyWeights(results);
   }
 
   async function init() {

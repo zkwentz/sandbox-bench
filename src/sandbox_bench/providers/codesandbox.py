@@ -1,5 +1,7 @@
 """CodeSandbox provider implementation using the pitcher WebSocket protocol."""
 
+from __future__ import annotations
+
 import asyncio
 import httpx
 import msgpack

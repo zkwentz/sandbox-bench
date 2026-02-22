@@ -1,5 +1,7 @@
 """Base provider interface and registry."""
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Dict, Optional, Type
@@ -138,6 +140,30 @@ class SandboxProvider(ABC):
         """
         pass
     
+    async def execute_command(
+        self,
+        sandbox_id: str,
+        command: str,
+        timeout_seconds: int = 30,
+    ) -> tuple[str, str, int]:
+        """
+        Execute a shell command in the sandbox.
+
+        Default implementation delegates to execute() with language="sh".
+        Providers may override for more efficient shell execution.
+
+        Args:
+            sandbox_id: The sandbox to execute in
+            command: Shell command to run
+            timeout_seconds: Execution timeout
+
+        Returns:
+            Tuple of (stdout, stderr, exit_code)
+        """
+        return await self.execute(
+            sandbox_id, command, language="sh", timeout_seconds=timeout_seconds
+        )
+
     async def get_status(self, sandbox_id: str) -> str:
         """
         Get sandbox status.
