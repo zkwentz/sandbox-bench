@@ -103,7 +103,7 @@ class SweSuite(TestSuite):
         t0 = time.time()
         cmd = (
             "git clone --depth 1 https://github.com/pallets/flask.git "
-            "/tmp/flask-test 2>&1 && ls /tmp/flask-test/setup.cfg /tmp/flask-test/pyproject.toml 2>/dev/null"
+            "/tmp/flask-test 2>&1 && test -d /tmp/flask-test/.git"
         )
         try:
             stdout, stderr, exit_code = await provider.execute_command(
@@ -149,8 +149,8 @@ class SweSuite(TestSuite):
             )
             stdout, stderr, exit_code = await provider.execute_command(
                 sandbox_id,
-                "python3 -m pytest /tmp/test_bench.py -v 2>&1",
-                timeout_seconds=30,
+                "pip install pytest -q 2>/dev/null; python3 -m pytest /tmp/test_bench.py -v 2>&1",
+                timeout_seconds=60,
             )
             success = exit_code == 0 and "passed" in stdout
             return PhaseResult(
