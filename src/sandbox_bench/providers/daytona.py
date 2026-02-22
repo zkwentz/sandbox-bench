@@ -30,22 +30,18 @@ class DaytonaProvider(SandboxProvider):
         try:
             from daytona_sdk import Daytona, DaytonaConfig
             self._api_key = api_key
+            os.environ["DAYTONA_API_KEY"] = api_key
             config = DaytonaConfig(api_key=api_key)
             self._client = Daytona(config)
         except ImportError:
             raise ImportError("daytona-sdk package required: pip install daytona-sdk")
-        except TypeError:
-            # Try alternative initialization
-            from daytona_sdk import Daytona
-            os.environ["DAYTONA_API_KEY"] = api_key
-            self._client = Daytona()
     
     async def create_sandbox(
         self,
         image: Optional[str] = None,
         timeout_seconds: int = 300,
     ) -> str:
-        """Create a Daytona workspace."""
+        """Create a Daytona sandbox."""
         self._sandbox = self._client.create()
         return self._sandbox.id
     
@@ -56,17 +52,18 @@ class DaytonaProvider(SandboxProvider):
         language: str = "python",
         timeout_seconds: int = 30,
     ) -> tuple[str, str, int]:
-        """Execute code in Daytona workspace."""
+        """Execute code in Daytona sandbox."""
         if language == "python":
-            result = self._sandbox.process.code_run(code)
+            response = self._sandbox.process.code_run(code)
         else:
-            result = self._sandbox.process.exec(f"echo '{code}' | {language}")
+            response = self._sandbox.process.exec(f"echo '{code}' | {language}")
         
-        return (
-            result.stdout or "",
-            result.stderr or "",
-            result.exit_code if hasattr(result, 'exit_code') else 0,
-        )
+        # Handle the response based on available attributes
+        stdout = getattr(response, 'result', '') or ''
+        stderr = ''
+        exit_code = getattr(response, 'exit_code', 0) or 0
+        
+        return (stdout, stderr, exit_code)
     
     async def write_file(
         self,
@@ -74,21 +71,27 @@ class DaytonaProvider(SandboxProvider):
         path: str,
         content: str | bytes,
     ) -> None:
-        """Write file to Daytona workspace."""
-        self._sandbox.fs.upload_file(path, content)
+        """Write file to Daytona sandbox."""
+        if isinstance(content, str):
+            content = content.encode('utf-8')
+        self._sandbox.fs.upload_file(content, path)
     
     async def read_file(
         self,
         sandbox_id: str,
         path: str,
     ) -> str | bytes:
-        """Read file from Daytona workspace."""
-        return self._sandbox.fs.download_file(path)
+        """Read file from Daytona sandbox."""
+        content = self._sandbox.fs.download_file(path)
+        # Return as string for comparison
+        if isinstance(content, bytes):
+            return content.decode('utf-8')
+        return content
     
     async def destroy(self, sandbox_id: str) -> None:
-        """Destroy Daytona workspace."""
+        """Destroy Daytona sandbox."""
         if self._sandbox:
-            self._client.remove(self._sandbox)
+            self._client.delete(self._sandbox)
 
 
 # Register the provider

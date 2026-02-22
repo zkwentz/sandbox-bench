@@ -1,109 +1,100 @@
 """Fly.io Machines provider implementation."""
 
-from typing import Optional
 import httpx
+import asyncio
+from typing import Optional
 
 from ..provider import SandboxProvider, ProviderInfo, register_provider
 
 
 class FlyProvider(SandboxProvider):
-    """Fly.io Machines provider (Firecracker microVMs)."""
+    """Fly.io Machines provider (Firecracker-based)."""
     
     name = "fly"
     info = ProviderInfo(
-        name="Fly.io Machines",
-        description="Firecracker VMs with global deployment",
-        docs_url="https://fly.io/docs/machines/",
+        name="Fly.io",
+        description="Run apps close to users with Firecracker VMs",
+        docs_url="https://fly.io/docs",
         pricing_url="https://fly.io/pricing",
         mcp_server=False,
         openapi_spec=True,
         llms_txt=False,
     )
     
+    BASE_URL = "https://api.machines.dev/v1"
+    
     def __init__(self):
-        self._token = None
+        self._api_key = None
+        self._client = None
+        self._machine_id = None
         self._app_name = "sandbox-bench"
-        self._base_url = "https://api.machines.dev/v1"
     
     async def authenticate(self, api_key: str) -> None:
         """Authenticate with Fly.io."""
-        self._token = api_key
+        self._api_key = api_key
+        self._client = httpx.AsyncClient(
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            timeout=120.0,
+        )
         
-        # Verify token works
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(
-                f"{self._base_url}/apps",
-                headers={"Authorization": f"Bearer {self._token}"},
+        # Ensure app exists
+        try:
+            resp = await self._client.get(
+                f"{self.BASE_URL}/apps/{self._app_name}"
             )
-            if resp.status_code != 200:
-                raise ValueError(f"Fly.io auth failed: {resp.text}")
+            if resp.status_code == 404:
+                # Create the app
+                await self._client.post(
+                    f"{self.BASE_URL}/apps",
+                    json={
+                        "app_name": self._app_name,
+                        "org_slug": "personal",
+                    }
+                )
+        except Exception:
+            pass  # App might already exist
     
     async def create_sandbox(
         self,
         image: Optional[str] = None,
         timeout_seconds: int = 300,
     ) -> str:
-        """Create a Fly Machine."""
-        config = {
-            "name": f"sandbox-bench-{int(__import__('time').time())}",
-            "config": {
-                "image": image or "python:3.11-slim",
-                "auto_destroy": True,
-                "restart": {"policy": "no"},
-                "guest": {
-                    "cpu_kind": "shared",
-                    "cpus": 1,
-                    "memory_mb": 256,
+        """Create a Fly.io machine."""
+        image = image or "python:3.12-slim"
+        
+        resp = await self._client.post(
+            f"{self.BASE_URL}/apps/{self._app_name}/machines",
+            json={
+                "config": {
+                    "image": image,
+                    "guest": {
+                        "cpu_kind": "shared",
+                        "cpus": 1,
+                        "memory_mb": 256,
+                    },
+                    "auto_destroy": True,
                 },
             },
-        }
+        )
+        resp.raise_for_status()
         
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{self._base_url}/apps/{self._app_name}/machines",
-                headers={
-                    "Authorization": f"Bearer {self._token}",
-                    "Content-Type": "application/json",
-                },
-                json=config,
+        data = resp.json()
+        self._machine_id = data["id"]
+        
+        # Wait for machine to start
+        for _ in range(30):
+            status_resp = await self._client.get(
+                f"{self.BASE_URL}/apps/{self._app_name}/machines/{self._machine_id}"
             )
-            
-            if resp.status_code not in (200, 201):
-                raise RuntimeError(f"Failed to create machine: {resp.text}")
-            
-            data = resp.json()
-            machine_id = data["id"]
-            
-            # Wait for machine to start
-            await self._wait_for_state(machine_id, "started")
-            
-            return machine_id
-    
-    async def _wait_for_state(
-        self,
-        machine_id: str,
-        target_state: str,
-        timeout: int = 60,
-    ) -> None:
-        """Wait for machine to reach target state."""
-        import asyncio
-        
-        start = __import__("time").time()
-        while __import__("time").time() - start < timeout:
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(
-                    f"{self._base_url}/apps/{self._app_name}/machines/{machine_id}",
-                    headers={"Authorization": f"Bearer {self._token}"},
-                )
-                
-                if resp.status_code == 200:
-                    state = resp.json().get("state")
-                    if state == target_state:
-                        return
-            
+            status = status_resp.json().get("state")
+            if status == "started":
+                break
             await asyncio.sleep(1)
         
-        raise TimeoutError(f"Machine did not reach {target_state} state")
+        return self._machine_id
     
     async def execute(
         self,
@@ -112,34 +103,28 @@ class FlyProvider(SandboxProvider):
         language: str = "python",
         timeout_seconds: int = 30,
     ) -> tuple[str, str, int]:
-        """Execute code via Fly Machine exec."""
-        import base64
+        """Execute code in Fly.io machine."""
+        if language == "python":
+            cmd = ["python3", "-c", code]
+        else:
+            cmd = ["sh", "-c", f"echo '{code}' | {language}"]
         
-        cmd = ["python", "-c", code] if language == "python" else [language, "-c", code]
+        resp = await self._client.post(
+            f"{self.BASE_URL}/apps/{self._app_name}/machines/{sandbox_id}/exec",
+            json={
+                "cmd": cmd,
+                "timeout": timeout_seconds,
+            },
+            timeout=timeout_seconds + 10,
+        )
+        resp.raise_for_status()
         
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{self._base_url}/apps/{self._app_name}/machines/{sandbox_id}/exec",
-                headers={
-                    "Authorization": f"Bearer {self._token}",
-                    "Content-Type": "application/json",
-                },
-                json={
-                    "cmd": cmd,
-                    "timeout": timeout_seconds,
-                },
-                timeout=timeout_seconds + 5,
-            )
-            
-            if resp.status_code != 200:
-                return ("", f"Exec failed: {resp.text}", 1)
-            
-            data = resp.json()
-            stdout = base64.b64decode(data.get("stdout", "")).decode()
-            stderr = base64.b64decode(data.get("stderr", "")).decode()
-            exit_code = data.get("exit_code", 0)
-            
-            return (stdout, stderr, exit_code)
+        data = resp.json()
+        return (
+            data.get("stdout", ""),
+            data.get("stderr", ""),
+            data.get("exit_code", 0),
+        )
     
     async def write_file(
         self,
@@ -147,38 +132,44 @@ class FlyProvider(SandboxProvider):
         path: str,
         content: str | bytes,
     ) -> None:
-        """Write file via exec."""
-        import base64
-        
+        """Write file to Fly.io machine via exec."""
         if isinstance(content, str):
             content = content.encode()
         
+        import base64
         b64 = base64.b64encode(content).decode()
-        code = f"import base64; open('{path}', 'wb').write(base64.b64decode('{b64}'))"
         
-        await self.execute(sandbox_id, code, "python")
+        await self.execute(
+            sandbox_id,
+            f"import base64; open('{path}', 'wb').write(base64.b64decode('{b64}'))",
+            language="python",
+        )
     
     async def read_file(
         self,
         sandbox_id: str,
         path: str,
     ) -> str | bytes:
-        """Read file via exec."""
-        stdout, stderr, exit_code = await self.execute(
+        """Read file from Fly.io machine via exec."""
+        stdout, _, _ = await self.execute(
             sandbox_id,
             f"cat {path}",
-            "sh",
+            language="sh",
         )
         return stdout
     
     async def destroy(self, sandbox_id: str) -> None:
-        """Destroy Fly Machine."""
-        async with httpx.AsyncClient() as client:
-            await client.delete(
-                f"{self._base_url}/apps/{self._app_name}/machines/{sandbox_id}",
-                headers={"Authorization": f"Bearer {self._token}"},
-                params={"force": "true"},
-            )
+        """Destroy Fly.io machine."""
+        if self._machine_id:
+            try:
+                await self._client.delete(
+                    f"{self.BASE_URL}/apps/{self._app_name}/machines/{sandbox_id}",
+                    params={"force": "true"},
+                )
+            except Exception:
+                pass
+        if self._client:
+            await self._client.aclose()
 
 
 # Register the provider
