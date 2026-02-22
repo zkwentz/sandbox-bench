@@ -23,6 +23,9 @@ def load_api_keys(env_file: str | None = None) -> Dict[str, str]:
         "modal": os.environ.get("MODAL_TOKEN_ID", ""),  # Modal uses token ID
         "codesandbox": os.environ.get("CODESANDBOX_API_KEY", ""),
         "fly": os.environ.get("FLY_API_TOKEN", ""),
+        # Generic providers - pass image name or VM command
+        "docker-image": os.environ.get("DOCKER_IMAGE", ""),
+        "microvm": os.environ.get("MICROVM_COMMAND", ""),
     }
 
 
