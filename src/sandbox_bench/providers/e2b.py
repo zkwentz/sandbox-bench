@@ -1,5 +1,6 @@
 """E2B provider implementation."""
 
+import os
 from typing import Optional
 
 from ..provider import SandboxProvider, ProviderInfo, register_provider
@@ -20,19 +21,24 @@ class E2BProvider(SandboxProvider):
     )
     
     def __init__(self):
-        self._client = None
+        self._sandbox = None
         self._api_key = None
     
     async def authenticate(self, api_key: str) -> None:
         """Authenticate with E2B."""
         try:
-            from e2b import Sandbox
+            from e2b_code_interpreter import Sandbox
             self._api_key = api_key
-            # E2B uses API key per-request, just validate it exists
+            os.environ["E2B_API_KEY"] = api_key
             if not api_key:
                 raise ValueError("E2B API key required")
         except ImportError:
-            raise ImportError("e2b package required: pip install e2b")
+            try:
+                from e2b import Sandbox
+                self._api_key = api_key
+                os.environ["E2B_API_KEY"] = api_key
+            except ImportError:
+                raise ImportError("e2b package required: pip install e2b")
     
     async def create_sandbox(
         self,
@@ -40,16 +46,13 @@ class E2BProvider(SandboxProvider):
         timeout_seconds: int = 300,
     ) -> str:
         """Create an E2B sandbox."""
-        from e2b import Sandbox
+        try:
+            from e2b_code_interpreter import Sandbox
+        except ImportError:
+            from e2b import Sandbox
         
-        template = image or "base"
-        sandbox = Sandbox(
-            template=template,
-            api_key=self._api_key,
-            timeout=timeout_seconds,
-        )
-        
-        return sandbox.id
+        self._sandbox = Sandbox.create()
+        return self._sandbox.sandbox_id
     
     async def execute(
         self,
@@ -59,21 +62,19 @@ class E2BProvider(SandboxProvider):
         timeout_seconds: int = 30,
     ) -> tuple[str, str, int]:
         """Execute code in E2B sandbox."""
-        from e2b import Sandbox
-        
-        sandbox = Sandbox.connect(sandbox_id, api_key=self._api_key)
-        
         if language == "python":
-            result = sandbox.run_code(code)
+            execution = self._sandbox.run_code(code)
+            stdout = ""
+            stderr = ""
+            if execution.logs:
+                stdout = "\n".join(execution.logs.stdout) if execution.logs.stdout else ""
+                stderr = "\n".join(execution.logs.stderr) if execution.logs.stderr else ""
+            if execution.error:
+                stderr += str(execution.error)
+            return (stdout, stderr, 0 if not execution.error else 1)
         else:
-            # Use process for other languages
-            result = sandbox.process.start_and_wait(f"echo '{code}' | {language}")
-        
-        return (
-            result.stdout or "",
-            result.stderr or "",
-            result.exit_code or 0,
-        )
+            result = self._sandbox.commands.run(f"echo '{code}' | {language}")
+            return (result.stdout or "", result.stderr or "", result.exit_code)
     
     async def write_file(
         self,
@@ -82,10 +83,9 @@ class E2BProvider(SandboxProvider):
         content: str | bytes,
     ) -> None:
         """Write file to E2B sandbox."""
-        from e2b import Sandbox
-        
-        sandbox = Sandbox.connect(sandbox_id, api_key=self._api_key)
-        sandbox.filesystem.write(path, content)
+        if isinstance(content, bytes):
+            content = content.decode('utf-8')
+        self._sandbox.files.write(path, content)
     
     async def read_file(
         self,
@@ -93,17 +93,12 @@ class E2BProvider(SandboxProvider):
         path: str,
     ) -> str | bytes:
         """Read file from E2B sandbox."""
-        from e2b import Sandbox
-        
-        sandbox = Sandbox.connect(sandbox_id, api_key=self._api_key)
-        return sandbox.filesystem.read(path)
+        return self._sandbox.files.read(path)
     
     async def destroy(self, sandbox_id: str) -> None:
         """Destroy E2B sandbox."""
-        from e2b import Sandbox
-        
-        sandbox = Sandbox.connect(sandbox_id, api_key=self._api_key)
-        sandbox.close()
+        if self._sandbox:
+            self._sandbox.kill()
 
 
 # Register the provider

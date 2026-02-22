@@ -1,5 +1,6 @@
 """Modal provider implementation."""
 
+import os
 from typing import Optional
 
 from ..provider import SandboxProvider, ProviderInfo, register_provider
@@ -27,9 +28,9 @@ class ModalProvider(SandboxProvider):
         """Authenticate with Modal."""
         try:
             import modal
-            # Modal uses token ID and secret from environment
-            # or ~/.modal/credentials
-            self._app = modal.App("sandbox-bench")
+            # Modal reads from MODAL_TOKEN_ID and MODAL_TOKEN_SECRET env vars
+            # or uses the passed credentials
+            self._modal = modal
         except ImportError:
             raise ImportError("modal package required: pip install modal")
     
@@ -41,14 +42,18 @@ class ModalProvider(SandboxProvider):
         """Create a Modal sandbox."""
         import modal
         
-        img = modal.Image.debian_slim().pip_install("numpy")
+        # Use App.lookup pattern as required by current Modal SDK
+        app = modal.App.lookup("sandbox-bench", create_if_missing=True)
+        
+        img = modal.Image.debian_slim(python_version="3.12").pip_install("numpy")
         if image:
             img = modal.Image.from_registry(image)
         
         self._sandbox = modal.Sandbox.create(
-            app=self._app,
+            "sleep", "infinity",
             image=img,
             timeout=timeout_seconds,
+            app=app,
         )
         
         return self._sandbox.object_id
@@ -68,11 +73,10 @@ class ModalProvider(SandboxProvider):
         
         process.wait()
         
-        return (
-            process.stdout.read(),
-            process.stderr.read(),
-            process.returncode,
-        )
+        stdout = process.stdout.read()
+        stderr = process.stderr.read()
+        
+        return (stdout, stderr, process.returncode)
     
     async def write_file(
         self,
@@ -84,13 +88,13 @@ class ModalProvider(SandboxProvider):
         if isinstance(content, str):
             content = content.encode()
         
-        # Use exec to write file
         import base64
         b64 = base64.b64encode(content).decode()
-        self._sandbox.exec(
+        process = self._sandbox.exec(
             "python", "-c",
             f"import base64; open('{path}', 'wb').write(base64.b64decode('{b64}'))"
-        ).wait()
+        )
+        process.wait()
     
     async def read_file(
         self,
