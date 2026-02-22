@@ -1,0 +1,246 @@
+name: Benchmark All Providers
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      docker_image:
+        description: 'Docker image to benchmark (e.g., openenv/echo-env:latest)'
+        required: false
+        type: string
+      microvm_command:
+        description: 'MicroVM command with {port} and {ip} placeholders'
+        required: false
+        type: string
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install sandbox-bench
+        run: |
+          pip install -e .
+          pip install python-dotenv
+
+      - name: Check KVM availability
+        id: kvm
+        run: |
+          if [ -e /dev/kvm ]; then
+            echo "available=true" >> $GITHUB_OUTPUT
+            sudo chmod 666 /dev/kvm
+          else
+            echo "available=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install Firecracker (for MicroVM provider)
+        if: steps.kvm.outputs.available == 'true'
+        run: |
+          ARCH=$(uname -m)
+          curl -L https://github.com/firecracker-microvm/firecracker/releases/download/v1.6.0/firecracker-v1.6.0-${ARCH}.tgz | tar xz
+          sudo mv release-v1.6.0-${ARCH}/firecracker-v1.6.0-${ARCH} /usr/local/bin/firecracker
+
+      - name: List available providers
+        run: sandbox-bench list
+
+      - name: Run benchmarks
+        env:
+          # Cloud provider API keys from secrets
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+          DAYTONA_API_KEY: ${{ secrets.DAYTONA_API_KEY }}
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          CODESANDBOX_API_KEY: ${{ secrets.CODESANDBOX_API_KEY }}
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          # Local providers (from workflow inputs or defaults)
+          DOCKER_IMAGE: ${{ inputs.docker_image || '' }}
+          MICROVM_COMMAND: ${{ inputs.microvm_command || '' }}
+        run: |
+          # Determine which providers to run based on available keys
+          PROVIDERS=""
+
+          if [ -n "$E2B_API_KEY" ]; then
+            PROVIDERS="$PROVIDERS --provider e2b"
+          fi
+
+          if [ -n "$DAYTONA_API_KEY" ]; then
+            PROVIDERS="$PROVIDERS --provider daytona"
+          fi
+
+          if [ -n "$MODAL_TOKEN_ID" ]; then
+            PROVIDERS="$PROVIDERS --provider modal"
+          fi
+
+          if [ -n "$DOCKER_IMAGE" ]; then
+            PROVIDERS="$PROVIDERS --provider docker-image"
+          fi
+
+          if [ -n "$MICROVM_COMMAND" ]; then
+            PROVIDERS="$PROVIDERS --provider microvm"
+          fi
+
+          if [ -z "$PROVIDERS" ]; then
+            echo "No providers configured. Add API keys to secrets or provide docker_image/microvm_command inputs."
+            exit 1
+          fi
+
+          echo "Running benchmarks for:$PROVIDERS"
+          sandbox-bench run $PROVIDERS --runs 3 --output results.json
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: results.json
+          retention-days: 90
+
+      - name: Generate summary
+        if: always()
+        run: |
+          if [ -f results.json ]; then
+            echo "## Benchmark Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat results.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Benchmark with OpenEnv environments (if openenvvm is available)
+  benchmark-openenv:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    strategy:
+      fail-fast: false
+      matrix:
+        env: [echo_env]  # Start with one env, expand later
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install sandbox-bench
+        run: |
+          pip install -e .
+          pip install python-dotenv
+
+      - name: Check KVM availability
+        id: kvm
+        run: |
+          if [ -e /dev/kvm ]; then
+            echo "available=true" >> $GITHUB_OUTPUT
+            sudo chmod 666 /dev/kvm
+          else
+            echo "available=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Install Firecracker
+        if: steps.kvm.outputs.available == 'true'
+        run: |
+          ARCH=$(uname -m)
+          curl -L https://github.com/firecracker-microvm/firecracker/releases/download/v1.6.0/firecracker-v1.6.0-${ARCH}.tgz | tar xz
+          sudo mv release-v1.6.0-${ARCH}/firecracker-v1.6.0-${ARCH} /usr/local/bin/firecracker
+
+      - name: Install Rust and build openenvvm
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Clone and build openenvvm
+        run: |
+          git clone https://github.com/zkwentz/openenvvm.git
+          cd openenvvm
+          cargo build --release
+          sudo cp target/release/openenvvm /usr/local/bin/
+
+      - name: Checkout OpenEnv
+        uses: actions/checkout@v4
+        with:
+          repository: meta-pytorch/OpenEnv
+          path: OpenEnv
+
+      - name: Build Docker image for ${{ matrix.env }}
+        run: |
+          cd OpenEnv/envs/${{ matrix.env }}
+
+          # Create Dockerfile if needed
+          if [ ! -f Dockerfile ]; then
+            cat > Dockerfile << 'EOF'
+          FROM python:3.11-slim
+          WORKDIR /app
+          COPY . /app/env
+          RUN pip install fastapi uvicorn
+          RUN if [ -f /app/env/server/requirements.txt ]; then pip install -r /app/env/server/requirements.txt; fi
+          EXPOSE 8000
+          CMD ["uvicorn", "env.server.app:app", "--host", "0.0.0.0", "--port", "8000"]
+          EOF
+          fi
+
+          docker build -t ${{ matrix.env }}:latest .
+
+      - name: Convert to MicroVM
+        if: steps.kvm.outputs.available == 'true'
+        run: |
+          openenvvm convert ./OpenEnv/envs/${{ matrix.env }} -o ${{ matrix.env }}.microvm
+
+      - name: Run benchmark - all providers
+        env:
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+          DAYTONA_API_KEY: ${{ secrets.DAYTONA_API_KEY }}
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          DOCKER_IMAGE: ${{ matrix.env }}:latest
+          MICROVM_COMMAND: "openenvvm run ./${{ matrix.env }}.microvm --port {port} --ip {ip}"
+        run: |
+          PROVIDERS="--provider docker-image"
+
+          if [ -e /dev/kvm ]; then
+            PROVIDERS="$PROVIDERS --provider microvm"
+          fi
+
+          if [ -n "$E2B_API_KEY" ]; then
+            PROVIDERS="$PROVIDERS --provider e2b"
+          fi
+
+          if [ -n "$DAYTONA_API_KEY" ]; then
+            PROVIDERS="$PROVIDERS --provider daytona"
+          fi
+
+          if [ -n "$MODAL_TOKEN_ID" ]; then
+            PROVIDERS="$PROVIDERS --provider modal"
+          fi
+
+          echo "Benchmarking ${{ matrix.env }} with:$PROVIDERS"
+          sandbox-bench run $PROVIDERS --runs 3 --output ${{ matrix.env }}-results.json || true
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-${{ matrix.env }}
+          path: ${{ matrix.env }}-results.json
+          retention-days: 90
+
+      - name: Generate summary
+        run: |
+          echo "## ${{ matrix.env }} Benchmark Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f ${{ matrix.env }}-results.json ]; then
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            cat ${{ matrix.env }}-results.json >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No results generated" >> $GITHUB_STEP_SUMMARY
+          fi
