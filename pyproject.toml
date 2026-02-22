@@ -29,12 +29,14 @@ dependencies = [
 e2b = ["e2b>=0.17.0"]
 daytona = ["daytona-sdk>=0.1.0"]
 modal = ["modal>=0.60.0"]
-codesandbox = ["codesandbox-sdk>=0.1.0"]
+codesandbox = ["websockets>=13.0", "msgpack>=1.0.0"]
+fly = []
 all = [
     "e2b>=0.17.0",
     "daytona-sdk>=0.1.0",
     "modal>=0.60.0",
-    "codesandbox-sdk>=0.1.0",
+    "websockets>=13.0",
+    "msgpack>=1.0.0",
 ]
 dev = [
     "pytest>=7.0.0",

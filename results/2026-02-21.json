@@ -4,8 +4,7 @@
       "e2b",
       "daytona",
       "modal",
-      "codesandbox",
-      "fly"
+      "codesandbox"
     ],
     "agent_mode": false,
     "model": "claude-opus-4",
@@ -15,7 +14,7 @@
     {
       "provider": "e2b",
       "success": true,
-      "total_time_seconds": 0.9535832405090332,
+      "total_time_seconds": 1.05777907371521,
       "tool_calls": 6,
       "friction_points": 0,
       "errors": 0,
@@ -26,25 +25,25 @@
       "grade": "A",
       "trace": [
         {
-          "timestamp": 1771727150.267442,
+          "timestamp": 1771728674.249978,
           "action": "authenticate",
-          "duration_ms": 0.009775161743164062,
+          "duration_ms": 0.010013580322265625,
           "success": true,
           "details": {}
         },
         {
-          "timestamp": 1771727150.453381,
+          "timestamp": 1771728674.447295,
           "action": "create_sandbox",
-          "duration_ms": 185.93621253967285,
+          "duration_ms": 197.31402397155762,
           "success": true,
           "details": {
-            "sandbox_id": "ierixb5mz0t4kkqbhczr0"
+            "sandbox_id": "id1sqt4ujrgq04wtn1exz"
           }
         },
         {
-          "timestamp": 1771727150.665611,
+          "timestamp": 1771728674.682009,
           "action": "execute",
-          "duration_ms": 212.22829818725586,
+          "duration_ms": 234.7090244293213,
           "success": true,
           "details": {
             "stdout": "Hello from sandbox-bench!\n",
@@ -53,16 +52,16 @@
           }
         },
         {
-          "timestamp": 1771727150.927069,
+          "timestamp": 1771728675.0172632,
           "action": "file_io",
-          "duration_ms": 261.45362854003906,
+          "duration_ms": 335.2518081665039,
           "success": true,
           "details": {}
         },
         {
-          "timestamp": 1771727151.078173,
+          "timestamp": 1771728675.1649652,
           "action": "destroy",
-          "duration_ms": 151.10087394714355,
+          "duration_ms": 147.70007133483887,
           "success": true,
           "details": {}
         }
@@ -71,7 +70,7 @@
     {
       "provider": "daytona",
       "success": true,
-      "total_time_seconds": 0.5476129055023193,
+      "total_time_seconds": 0.7799618244171143,
       "tool_calls": 6,
       "friction_points": 0,
       "errors": 0,
@@ -82,25 +81,25 @@
       "grade": "A",
       "trace": [
         {
-          "timestamp": 1771727155.475017,
+          "timestamp": 1771728678.980772,
           "action": "authenticate",
-          "duration_ms": 1.252889633178711,
+          "duration_ms": 1.0650157928466797,
           "success": true,
           "details": {}
         },
         {
-          "timestamp": 1771727155.573645,
+          "timestamp": 1771728679.2704918,
           "action": "create_sandbox",
-          "duration_ms": 98.62589836120605,
+          "duration_ms": 289.7176742553711,
           "success": true,
           "details": {
-            "sandbox_id": "7c40a706-dbd6-4cc3-a99a-380e7dd8d86a"
+            "sandbox_id": "3500182c-e68f-4db5-bda4-8e8b4bb6cf90"
           }
         },
         {
-          "timestamp": 1771727155.809464,
+          "timestamp": 1771728679.446762,
           "action": "execute",
-          "duration_ms": 235.81194877624512,
+          "duration_ms": 176.26690864562988,
           "success": true,
           "details": {
             "stdout": "Hello from sandbox-bench!",
@@ -109,16 +108,16 @@
           }
         },
         {
-          "timestamp": 1771727155.911485,
+          "timestamp": 1771728679.6717272,
           "action": "file_io",
-          "duration_ms": 102.01406478881836,
+          "duration_ms": 224.96294975280762,
           "success": true,
           "details": {}
         },
         {
-          "timestamp": 1771727155.982236,
+          "timestamp": 1771728679.7328691,
           "action": "destroy",
-          "duration_ms": 70.74809074401855,
+          "duration_ms": 61.14006042480469,
           "success": true,
           "details": {}
         }
@@ -127,7 +126,7 @@
     {
       "provider": "modal",
       "success": true,
-      "total_time_seconds": 1.592397689819336,
+      "total_time_seconds": 1.457625150680542,
       "tool_calls": 6,
       "friction_points": 0,
       "errors": 0,
@@ -138,25 +137,25 @@
       "grade": "A",
       "trace": [
         {
-          "timestamp": 1771727160.7644968,
+          "timestamp": 1771728684.425673,
           "action": "authenticate",
-          "duration_ms": 0.0016689300537109375,
+          "duration_ms": 0.0021457672119140625,
           "success": true,
           "details": {}
         },
         {
-          "timestamp": 1771727160.9218261,
+          "timestamp": 1771728684.5530748,
           "action": "create_sandbox",
-          "duration_ms": 157.32693672180176,
+          "duration_ms": 127.39896774291992,
           "success": true,
           "details": {
-            "sandbox_id": "sb-YGrjtr9p9RYgNzP78Njy7z"
+            "sandbox_id": "sb-P2abhqI2AhOg5FDOFOAYL2"
           }
         },
         {
-          "timestamp": 1771727162.079255,
+          "timestamp": 1771728685.643338,
           "action": "execute",
-          "duration_ms": 1157.423973083496,
+          "duration_ms": 1090.2597904205322,
           "success": true,
           "details": {
             "stdout": "Hello from sandbox-bench!\n",
@@ -165,16 +164,16 @@
           }
         },
         {
-          "timestamp": 1771727162.299736,
+          "timestamp": 1771728685.829311,
           "action": "file_io",
-          "duration_ms": 220.4740047454834,
+          "duration_ms": 185.97006797790527,
           "success": true,
           "details": {}
         },
         {
-          "timestamp": 1771727162.335861,
+          "timestamp": 1771728685.865511,
           "action": "destroy",
-          "duration_ms": 36.11397743225098,
+          "duration_ms": 36.19694709777832,
           "success": true,
           "details": {}
         }
@@ -182,53 +181,57 @@
     },
     {
       "provider": "codesandbox",
-      "success": false,
-      "total_time_seconds": 3.814697265625e-06,
-      "tool_calls": 0,
+      "success": true,
+      "total_time_seconds": 18.619209051132202,
+      "tool_calls": 6,
       "friction_points": 0,
-      "errors": 1,
-      "error_messages": [
-        "Auth failed: CodeSandbox requires their JavaScript SDK. Install: npm install @codesandbox/sdk"
-      ],
-      "estimated_cost_usd": 0.0,
+      "errors": 0,
+      "error_messages": [],
+      "estimated_cost_usd": 0.135,
       "discoverability_score": 3.5,
-      "score": 0.0,
-      "grade": "F",
+      "score": 93.1,
+      "grade": "A",
       "trace": [
         {
-          "timestamp": 1771727164.8187468,
+          "timestamp": 1771728727.691443,
           "action": "authenticate",
-          "duration_ms": 0.00095367431640625,
-          "success": false,
-          "details": {
-            "error": "CodeSandbox requires their JavaScript SDK. Install: npm install @codesandbox/sdk"
-          }
-        }
-      ]
-    },
-    {
-      "provider": "fly",
-      "success": false,
-      "total_time_seconds": 4.0531158447265625e-06,
-      "tool_calls": 0,
-      "friction_points": 0,
-      "errors": 1,
-      "error_messages": [
-        "Auth failed: Fly.io/Sprites integration requires flyctl CLI setup. Run: fly auth login"
-      ],
-      "estimated_cost_usd": 0.0,
-      "discoverability_score": 3.5,
-      "score": 0.0,
-      "grade": "F",
-      "trace": [
+          "duration_ms": 161.85998916625977,
+          "success": true,
+          "details": {}
+        },
         {
-          "timestamp": 1771727164.818795,
-          "action": "authenticate",
-          "duration_ms": 0.0019073486328125,
-          "success": false,
+          "timestamp": 1771728729.33235,
+          "action": "create_sandbox",
+          "duration_ms": 1640.9039497375488,
+          "success": true,
           "details": {
-            "error": "Fly.io/Sprites integration requires flyctl CLI setup. Run: fly auth login"
+            "sandbox_id": "x6hdzn"
           }
+        },
+        {
+          "timestamp": 1771728729.719288,
+          "action": "execute",
+          "duration_ms": 386.9361877441406,
+          "success": true,
+          "details": {
+            "stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\nHello from sandbox-bench!\r\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1771728729.739964,
+          "action": "file_io",
+          "duration_ms": 20.67279815673828,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771728746.1485739,
+          "action": "destroy",
+          "duration_ms": 16408.607006072998,
+          "success": true,
+          "details": {}
         }
       ]
     }
