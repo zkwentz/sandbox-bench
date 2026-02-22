@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sandbox-bench | AI Agent Sandbox Provider Benchmarks</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface-2: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-hover: #79c0ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --orange: #db6d28;
+    --red: #f85149;
+    --grade-a: #3fb950;
+    --grade-b: #58a6ff;
+    --grade-c: #d29922;
+    --grade-d: #db6d28;
+    --grade-f: #f85149;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Header */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 32px 0;
+  }
+
+  header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent), #a371f7);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .logo h1 {
+    font-size: 24px;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--text), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .logo p {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .header-links {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .header-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+
+  .header-links a:hover {
+    color: var(--text);
+    border-color: var(--text-muted);
+  }
+
+  /* Date Selector */
+  .controls {
+    padding: 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .date-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .date-selector label {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .date-selector select {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .run-info {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Leaderboard */
+  .section {
+    margin-bottom: 48px;
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title .icon {
+    font-size: 18px;
+  }
+
+  /* Provider Cards */
+  .leaderboard {
+    display: grid;
+    gap: 12px;
+  }
+
+  .provider-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: 20px;
+    transition: border-color 0.2s;
+    cursor: pointer;
+  }
+
+  .provider-card:hover {
+    border-color: var(--accent);
+  }
+
+  .provider-card.failed {
+    opacity: 0.5;
+  }
+
+  .rank {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .provider-card:nth-child(1) .rank { color: #ffd700; }
+  .provider-card:nth-child(2) .rank { color: #c0c0c0; }
+  .provider-card:nth-child(3) .rank { color: #cd7f32; }
+
+  .provider-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .provider-name-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .provider-name {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .grade-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 16px;
+    color: white;
+  }
+
+  .grade-A { background: var(--grade-a); }
+  .grade-B { background: var(--grade-b); }
+  .grade-C { background: var(--grade-c); }
+  .grade-D { background: var(--grade-d); }
+  .grade-F { background: var(--grade-f); }
+
+  .provider-metrics {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .metric {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .metric-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+
+  .metric-value {
+    font-size: 15px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .score-display {
+    text-align: center;
+    min-width: 80px;
+  }
+
+  .score-number {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .score-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* Comparison Chart */
+  .chart-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .chart-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 60px;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .chart-provider {
+    font-size: 14px;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .chart-bar-container {
+    height: 32px;
+    background: var(--surface-2);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .chart-bar {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    min-width: 2px;
+  }
+
+  .chart-bar.grade-A { background: linear-gradient(90deg, var(--grade-a), #56d364); }
+  .chart-bar.grade-B { background: linear-gradient(90deg, var(--grade-b), var(--accent-hover)); }
+  .chart-bar.grade-C { background: linear-gradient(90deg, var(--grade-c), #e3b341); }
+  .chart-bar.grade-D { background: linear-gradient(90deg, var(--grade-d), #e09b5a); }
+  .chart-bar.grade-F { background: linear-gradient(90deg, var(--grade-f), #ff7b72); }
+
+  .chart-score {
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Breakdown Table */
+  .breakdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .breakdown-table th,
+  .breakdown-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .breakdown-table th {
+    background: var(--surface-2);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .breakdown-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .breakdown-table td {
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .breakdown-table .provider-cell {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mini-grade {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+    color: white;
+  }
+
+  .status-pass {
+    color: var(--green);
+  }
+
+  .status-fail {
+    color: var(--red);
+  }
+
+  /* Trace Timeline */
+  .trace-section {
+    margin-top: 12px;
+    padding: 16px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    display: none;
+  }
+
+  .trace-section.active {
+    display: block;
+  }
+
+  .trace-timeline {
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    height: 80px;
+    padding: 8px 0;
+  }
+
+  .trace-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .trace-bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    min-height: 4px;
+    transition: height 0.3s;
+  }
+
+  .trace-bar.success { background: var(--green); }
+  .trace-bar.failure { background: var(--red); }
+
+  .trace-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .trace-duration {
+    font-size: 11px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Scoring Methodology */
+  .methodology {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .weight-bars {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .weight-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .weight-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+  }
+
+  .weight-name { font-weight: 500; }
+  .weight-pct { color: var(--text-muted); }
+
+  .weight-track {
+    height: 6px;
+    background: var(--surface-2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .weight-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--accent);
+  }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    margin-top: 48px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  footer a:hover {
+    text-decoration: underline;
+  }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 64px 0;
+    color: var(--text-muted);
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .provider-card {
+      grid-template-columns: 36px 1fr;
+      gap: 12px;
+    }
+
+    .score-display {
+      grid-column: 1 / -1;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .score-number { font-size: 24px; }
+
+    .provider-metrics { gap: 12px; }
+
+    .chart-row {
+      grid-template-columns: 80px 1fr 50px;
+    }
+
+    .breakdown-table {
+      display: block;
+      overflow-x: auto;
+    }
+
+    .header-links { display: none; }
+  }
+
+  /* Error tooltip */
+  .error-tooltip {
+    position: relative;
+    cursor: help;
+  }
+
+  .error-tooltip:hover::after {
+    content: attr(data-error);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="logo">
+      <div class="logo-icon">sb</div>
+      <div>
+        <h1>sandbox-bench</h1>
+        <p>AI Agent Sandbox Provider Benchmarks</p>
+      </div>
+    </div>
+    <div class="header-links">
+      <a href="https://github.com/zkwentz/sandbox-bench">GitHub</a>
+      <a href="#methodology">Methodology</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="controls">
+    <div class="date-selector">
+      <label for="date-select">Benchmark run:</label>
+      <select id="date-select"></select>
+    </div>
+    <div class="run-info" id="run-info"></div>
+  </div>
+
+  <!-- Score Chart -->
+  <div class="section">
+    <h2 class="section-title">Overall Scores</h2>
+    <div class="chart-container">
+      <div class="bar-chart" id="score-chart"></div>
+    </div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div class="section">
+    <h2 class="section-title">Leaderboard</h2>
+    <div class="leaderboard" id="leaderboard"></div>
+  </div>
+
+  <!-- Detailed Breakdown -->
+  <div class="section">
+    <h2 class="section-title">Detailed Breakdown</h2>
+    <table class="breakdown-table">
+      <thead>
+        <tr>
+          <th>Provider</th>
+          <th>Status</th>
+          <th>Time</th>
+          <th>API Calls</th>
+          <th>Friction</th>
+          <th>Errors</th>
+          <th>Est. Cost</th>
+          <th>Discoverability</th>
+          <th>Score</th>
+          <th>Grade</th>
+        </tr>
+      </thead>
+      <tbody id="breakdown-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Phase Timings -->
+  <div class="section">
+    <h2 class="section-title">Phase Timings (ms)</h2>
+    <div class="chart-container" id="phase-chart-container">
+      <table class="breakdown-table" id="phase-table">
+        <thead>
+          <tr>
+            <th>Provider</th>
+            <th>Authenticate</th>
+            <th>Create Sandbox</th>
+            <th>Execute Code</th>
+            <th>File I/O</th>
+            <th>Destroy</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="phase-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Methodology -->
+  <div class="section" id="methodology">
+    <h2 class="section-title">Scoring Methodology</h2>
+    <div class="methodology">
+      <p style="color: var(--text-muted); margin-bottom: 16px;">
+        Each provider is scored from 0-100 based on six weighted metrics. The benchmark measures the full lifecycle
+        of an AI agent interacting with a sandbox: authenticate, create, execute code, read/write files, and destroy.
+      </p>
+      <div class="weight-bars">
+        <div class="weight-item">
+          <div class="weight-header">
+            <span class="weight-name">Time</span>
+            <span class="weight-pct">30%</span>
+          </div>
+          <div class="weight-track"><div class="weight-fill" style="width:100%"></div></div>
+          <span style="font-size:11px;color:var(--text-muted)">Seconds from API key to working sandbox</span>
+        </div>
+        <div class="weight-item">
+          <div class="weight-header">
+            <span class="weight-name">Errors</span>
+            <span class="weight-pct">20%</span>
+          </div>
+          <div class="weight-track"><div class="weight-fill" style="width:66%"></div></div>
+          <span style="font-size:11px;color:var(--text-muted)">Errors encountered during onboarding</span>
+        </div>
+        <div class="weight-item">
+          <div class="weight-header">
+            <span class="weight-name">Tool Calls</span>
+            <span class="weight-pct">15%</span>
+          </div>
+          <div class="weight-track"><div class="weight-fill" style="width:50%"></div></div>
+          <span style="font-size:11px;color:var(--text-muted)">Number of API/SDK calls required</span>
+        </div>
+        <div class="weight-item">
+          <div class="weight-header">
+            <span class="weight-name">Friction</span>
+            <span class="weight-pct">15%</span>
+          </div>
+          <div class="weight-track"><div class="weight-fill" style="width:50%"></div></div>
+          <span style="font-size:11px;color:var(--text-muted)">Manual steps or workarounds needed</span>
+        </div>
+        <div class="weight-item">
+          <div class="weight-header">
+            <span class="weight-name">Cost</span>
+            <span class="weight-pct">10%</span>
+          </div>
+          <div class="weight-track"><div class="weight-fill" style="width:33%"></div></div>
+          <span style="font-size:11px;color:var(--text-muted)">USD cost per benchmark run</span>
+        </div>
+        <div class="weight-item">
+          <div class="weight-header">
+            <span class="weight-name">Discoverability</span>
+            <span class="weight-pct">10%</span>
+          </div>
+          <div class="weight-track"><div class="weight-fill" style="width:33%"></div></div>
+          <span style="font-size:11px;color:var(--text-muted)">Docs, MCP server, OpenAPI, llms.txt</span>
+        </div>
+      </div>
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <p style="font-size: 13px; color: var(--text-muted);">
+          <strong style="color: var(--text);">Grades:</strong>
+          <span style="color:var(--grade-a);">A (85-100)</span> &middot;
+          <span style="color:var(--grade-b);">B (70-84)</span> &middot;
+          <span style="color:var(--grade-c);">C (55-69)</span> &middot;
+          <span style="color:var(--grade-d);">D (40-54)</span> &middot;
+          <span style="color:var(--grade-f);">F (0-39)</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="container">
+    <p>
+      <a href="https://github.com/zkwentz/sandbox-bench">sandbox-bench</a> &mdash;
+      Open source benchmarks for AI agent sandbox providers.
+      Run your own: <code style="background:var(--surface-2);padding:2px 6px;border-radius:4px;">pip install sandbox-bench && sandbox-bench run --all</code>
+    </p>
+  </div>
+</footer>
+
+<script>
+(function() {
+  // Try multiple base paths to find results.
+  // Works locally (from docs/ or root) and on GitHub Pages.
+  const PATHS_TO_TRY = [
+    'results/',          // GitHub Pages (_site root) or local from root
+    '../results/',       // Local when opened from docs/
+    './results/',        // Relative fallback
+  ];
+
+  async function fetchJSON(url) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    } catch {
+      return null;
+    }
+  }
+
+  async function findBasePath() {
+    for (const p of PATHS_TO_TRY) {
+      const data = await fetchJSON(p + 'manifest.json');
+      if (data) return p;
+    }
+    return null;
+  }
+
+  function formatTime(seconds) {
+    if (seconds < 0.001) return '<1ms';
+    if (seconds < 1) return Math.round(seconds * 1000) + 'ms';
+    return seconds.toFixed(2) + 's';
+  }
+
+  function formatMs(ms) {
+    if (ms < 1) return '<1ms';
+    if (ms < 1000) return Math.round(ms) + 'ms';
+    return (ms / 1000).toFixed(2) + 's';
+  }
+
+  function gradeColor(grade) {
+    const colors = { A: '#3fb950', B: '#58a6ff', C: '#d29922', D: '#db6d28', F: '#f85149' };
+    return colors[grade] || '#8b949e';
+  }
+
+  function renderScoreChart(results) {
+    const container = document.getElementById('score-chart');
+    const sorted = [...results].sort((a, b) => b.score - a.score);
+    const maxScore = 100;
+
+    container.innerHTML = sorted.map(r => `
+      <div class="chart-row">
+        <div class="chart-provider">${r.provider}</div>
+        <div class="chart-bar-container">
+          <div class="chart-bar grade-${r.grade}" style="width: ${(r.score / maxScore) * 100}%"></div>
+        </div>
+        <div class="chart-score" style="color: ${gradeColor(r.grade)}">${r.score}</div>
+      </div>
+    `).join('');
+
+    // Animate bars
+    requestAnimationFrame(() => {
+      container.querySelectorAll('.chart-bar').forEach(bar => {
+        bar.style.width = bar.style.width;
+      });
+    });
+  }
+
+  function renderLeaderboard(results) {
+    const container = document.getElementById('leaderboard');
+    const sorted = [...results].sort((a, b) => b.score - a.score);
+
+    container.innerHTML = sorted.map((r, i) => {
+      const failed = !r.success;
+      const errorMsg = r.error_messages && r.error_messages.length > 0
+        ? r.error_messages[0] : '';
+
+      return `
+        <div class="provider-card ${failed ? 'failed' : ''}" onclick="toggleTrace('trace-${i}')">
+          <div class="rank">#${i + 1}</div>
+          <div class="provider-info">
+            <div class="provider-name-row">
+              <span class="provider-name">${r.provider}</span>
+              <span class="grade-badge grade-${r.grade}">${r.grade}</span>
+              ${failed ? `<span class="error-tooltip" data-error="${errorMsg}" style="font-size:12px;color:var(--red);">Failed</span>` : ''}
+            </div>
+            <div class="provider-metrics">
+              <div class="metric">
+                <span class="metric-label">Time</span>
+                <span class="metric-value">${formatTime(r.total_time_seconds)}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">API Calls</span>
+                <span class="metric-value">${r.tool_calls}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Friction</span>
+                <span class="metric-value">${r.friction_points}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Errors</span>
+                <span class="metric-value ${r.errors > 0 ? 'status-fail' : 'status-pass'}">${r.errors}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Est. Cost</span>
+                <span class="metric-value">$${r.estimated_cost_usd.toFixed(2)}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Discoverability</span>
+                <span class="metric-value">${r.discoverability_score}/5</span>
+              </div>
+            </div>
+            ${renderTrace(r.trace, i)}
+          </div>
+          <div class="score-display">
+            <div class="score-number" style="color: ${gradeColor(r.grade)}">${r.score}</div>
+            <div class="score-label">score</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderTrace(trace, index) {
+    if (!trace || trace.length === 0) return '';
+
+    const maxDuration = Math.max(...trace.map(t => t.duration_ms), 1);
+
+    return `
+      <div class="trace-section" id="trace-${index}">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Benchmark Phase Timeline (click card to toggle)</div>
+        <div class="trace-timeline">
+          ${trace.map(t => {
+            const height = Math.max(8, (t.duration_ms / maxDuration) * 60);
+            return `
+              <div class="trace-step">
+                <div class="trace-duration">${formatMs(t.duration_ms)}</div>
+                <div class="trace-bar ${t.success ? 'success' : 'failure'}" style="height: ${height}px"></div>
+                <div class="trace-label">${t.action.replace('_', ' ')}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  window.toggleTrace = function(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active');
+  };
+
+  function renderBreakdown(results) {
+    const body = document.getElementById('breakdown-body');
+    const sorted = [...results].sort((a, b) => b.score - a.score);
+
+    body.innerHTML = sorted.map(r => `
+      <tr>
+        <td><div class="provider-cell"><span class="mini-grade grade-${r.grade}">${r.grade}</span> ${r.provider}</div></td>
+        <td class="${r.success ? 'status-pass' : 'status-fail'}">${r.success ? 'Pass' : 'Fail'}</td>
+        <td>${formatTime(r.total_time_seconds)}</td>
+        <td>${r.tool_calls}</td>
+        <td>${r.friction_points}</td>
+        <td class="${r.errors > 0 ? 'status-fail' : ''}">${r.errors}</td>
+        <td>$${r.estimated_cost_usd.toFixed(2)}</td>
+        <td>${r.discoverability_score}/5</td>
+        <td style="font-weight:600">${r.score}</td>
+        <td><span class="mini-grade grade-${r.grade}">${r.grade}</span></td>
+      </tr>
+    `).join('');
+  }
+
+  function renderPhaseTimings(results) {
+    const body = document.getElementById('phase-body');
+    const phases = ['authenticate', 'create_sandbox', 'execute', 'file_io', 'destroy'];
+    const sorted = [...results].sort((a, b) => b.score - a.score);
+
+    body.innerHTML = sorted.map(r => {
+      const timings = {};
+      let total = 0;
+      if (r.trace) {
+        r.trace.forEach(t => {
+          timings[t.action] = t.duration_ms;
+          total += t.duration_ms;
+        });
+      }
+      return `
+        <tr>
+          <td><div class="provider-cell"><span class="mini-grade grade-${r.grade}">${r.grade}</span> ${r.provider}</div></td>
+          ${phases.map(p => `<td>${timings[p] !== undefined ? formatMs(timings[p]) : '-'}</td>`).join('')}
+          <td style="font-weight:600">${total > 0 ? formatMs(total) : '-'}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function renderAll(data) {
+    const config = data.config;
+    const results = data.results;
+
+    document.getElementById('run-info').innerHTML =
+      `${results.length} providers &middot; ${config.runs} runs each &middot; best-of-N scoring`;
+
+    renderScoreChart(results);
+    renderLeaderboard(results);
+    renderBreakdown(results);
+    renderPhaseTimings(results);
+  }
+
+  async function init() {
+    const basePath = await findBasePath();
+
+    if (!basePath) {
+      document.querySelector('main.container').innerHTML = `
+        <div class="loading">
+          <p>Could not load benchmark results.</p>
+          <p style="margin-top:8px;font-size:13px;">Run <code>sandbox-bench run --all --output results/YYYY-MM-DD.json</code> to generate results.</p>
+        </div>`;
+      return;
+    }
+
+    const manifest = await fetchJSON(basePath + 'manifest.json');
+    const select = document.getElementById('date-select');
+    manifest.dates.sort().reverse().forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d;
+      if (d === manifest.latest) opt.selected = true;
+      select.appendChild(opt);
+    });
+
+    async function loadDate(date) {
+      const data = await fetchJSON(basePath + date + '.json');
+      if (data) renderAll(data);
+    }
+
+    select.addEventListener('change', () => loadDate(select.value));
+    loadDate(manifest.latest);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>

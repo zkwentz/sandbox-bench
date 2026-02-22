@@ -1,0 +1,236 @@
+{
+  "config": {
+    "providers": [
+      "e2b",
+      "daytona",
+      "modal",
+      "codesandbox",
+      "fly"
+    ],
+    "agent_mode": false,
+    "model": "claude-opus-4",
+    "runs": 3
+  },
+  "results": [
+    {
+      "provider": "e2b",
+      "success": true,
+      "total_time_seconds": 0.9535832405090332,
+      "tool_calls": 6,
+      "friction_points": 0,
+      "errors": 0,
+      "error_messages": [],
+      "estimated_cost_usd": 0.135,
+      "discoverability_score": 4.5,
+      "score": 96.8,
+      "grade": "A",
+      "trace": [
+        {
+          "timestamp": 1771727150.267442,
+          "action": "authenticate",
+          "duration_ms": 0.009775161743164062,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771727150.453381,
+          "action": "create_sandbox",
+          "duration_ms": 185.93621253967285,
+          "success": true,
+          "details": {
+            "sandbox_id": "ierixb5mz0t4kkqbhczr0"
+          }
+        },
+        {
+          "timestamp": 1771727150.665611,
+          "action": "execute",
+          "duration_ms": 212.22829818725586,
+          "success": true,
+          "details": {
+            "stdout": "Hello from sandbox-bench!\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1771727150.927069,
+          "action": "file_io",
+          "duration_ms": 261.45362854003906,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771727151.078173,
+          "action": "destroy",
+          "duration_ms": 151.10087394714355,
+          "success": true,
+          "details": {}
+        }
+      ]
+    },
+    {
+      "provider": "daytona",
+      "success": true,
+      "total_time_seconds": 0.5476129055023193,
+      "tool_calls": 6,
+      "friction_points": 0,
+      "errors": 0,
+      "error_messages": [],
+      "estimated_cost_usd": 0.135,
+      "discoverability_score": 3.5,
+      "score": 94.9,
+      "grade": "A",
+      "trace": [
+        {
+          "timestamp": 1771727155.475017,
+          "action": "authenticate",
+          "duration_ms": 1.252889633178711,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771727155.573645,
+          "action": "create_sandbox",
+          "duration_ms": 98.62589836120605,
+          "success": true,
+          "details": {
+            "sandbox_id": "7c40a706-dbd6-4cc3-a99a-380e7dd8d86a"
+          }
+        },
+        {
+          "timestamp": 1771727155.809464,
+          "action": "execute",
+          "duration_ms": 235.81194877624512,
+          "success": true,
+          "details": {
+            "stdout": "Hello from sandbox-bench!",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1771727155.911485,
+          "action": "file_io",
+          "duration_ms": 102.01406478881836,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771727155.982236,
+          "action": "destroy",
+          "duration_ms": 70.74809074401855,
+          "success": true,
+          "details": {}
+        }
+      ]
+    },
+    {
+      "provider": "modal",
+      "success": true,
+      "total_time_seconds": 1.592397689819336,
+      "tool_calls": 6,
+      "friction_points": 0,
+      "errors": 0,
+      "error_messages": [],
+      "estimated_cost_usd": 0.135,
+      "discoverability_score": 3.5,
+      "score": 94.8,
+      "grade": "A",
+      "trace": [
+        {
+          "timestamp": 1771727160.7644968,
+          "action": "authenticate",
+          "duration_ms": 0.0016689300537109375,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771727160.9218261,
+          "action": "create_sandbox",
+          "duration_ms": 157.32693672180176,
+          "success": true,
+          "details": {
+            "sandbox_id": "sb-YGrjtr9p9RYgNzP78Njy7z"
+          }
+        },
+        {
+          "timestamp": 1771727162.079255,
+          "action": "execute",
+          "duration_ms": 1157.423973083496,
+          "success": true,
+          "details": {
+            "stdout": "Hello from sandbox-bench!\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1771727162.299736,
+          "action": "file_io",
+          "duration_ms": 220.4740047454834,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771727162.335861,
+          "action": "destroy",
+          "duration_ms": 36.11397743225098,
+          "success": true,
+          "details": {}
+        }
+      ]
+    },
+    {
+      "provider": "codesandbox",
+      "success": false,
+      "total_time_seconds": 3.814697265625e-06,
+      "tool_calls": 0,
+      "friction_points": 0,
+      "errors": 1,
+      "error_messages": [
+        "Auth failed: CodeSandbox requires their JavaScript SDK. Install: npm install @codesandbox/sdk"
+      ],
+      "estimated_cost_usd": 0.0,
+      "discoverability_score": 3.5,
+      "score": 0.0,
+      "grade": "F",
+      "trace": [
+        {
+          "timestamp": 1771727164.8187468,
+          "action": "authenticate",
+          "duration_ms": 0.00095367431640625,
+          "success": false,
+          "details": {
+            "error": "CodeSandbox requires their JavaScript SDK. Install: npm install @codesandbox/sdk"
+          }
+        }
+      ]
+    },
+    {
+      "provider": "fly",
+      "success": false,
+      "total_time_seconds": 4.0531158447265625e-06,
+      "tool_calls": 0,
+      "friction_points": 0,
+      "errors": 1,
+      "error_messages": [
+        "Auth failed: Fly.io/Sprites integration requires flyctl CLI setup. Run: fly auth login"
+      ],
+      "estimated_cost_usd": 0.0,
+      "discoverability_score": 3.5,
+      "score": 0.0,
+      "grade": "F",
+      "trace": [
+        {
+          "timestamp": 1771727164.818795,
+          "action": "authenticate",
+          "duration_ms": 0.0019073486328125,
+          "success": false,
+          "details": {
+            "error": "Fly.io/Sprites integration requires flyctl CLI setup. Run: fly auth login"
+          }
+        }
+      ]
+    }
+  ]
+}
