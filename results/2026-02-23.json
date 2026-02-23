@@ -1,0 +1,416 @@
+{
+  "config": {
+    "providers": [
+      "e2b",
+      "daytona",
+      "modal",
+      "codesandbox",
+      "fly"
+    ],
+    "suites": [
+      "basic"
+    ],
+    "agent_mode": false,
+    "model": "claude-opus-4",
+    "runs": 3
+  },
+  "results": [
+    {
+      "provider": "e2b",
+      "success": true,
+      "total_time_seconds": 0.7252368927001953,
+      "tool_calls": 5,
+      "friction_points": 0,
+      "errors": 0,
+      "error_messages": [],
+      "estimated_cost_usd": 7.3e-05,
+      "sandbox_cost_usd": 7.3e-05,
+      "discoverability_score": 4.5,
+      "score": 97.4,
+      "grade": "A",
+      "trace": [
+        {
+          "timestamp": 1771865075.681982,
+          "action": "authenticate",
+          "duration_ms": 0.1857280731201172,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771865075.821874,
+          "action": "create_sandbox",
+          "duration_ms": 139.88804817199707,
+          "success": true,
+          "details": {
+            "sandbox_id": "ii5mx37io9knl2nqif7u2"
+          }
+        },
+        {
+          "timestamp": 1771865076.266689,
+          "action": "basic/execute_hello",
+          "duration_ms": 269.40393447875977,
+          "success": true,
+          "details": {
+            "stdout": "Hello from sandbox-bench!\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1771865076.2666938,
+          "action": "basic/file_io",
+          "duration_ms": 175.3861904144287,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771865076.4070258,
+          "action": "destroy",
+          "duration_ms": 140.32626152038574,
+          "success": true,
+          "details": {}
+        }
+      ],
+      "suites_run": [
+        "basic"
+      ],
+      "suite_results": {
+        "basic": [
+          {
+            "name": "execute_hello",
+            "success": true,
+            "duration_seconds": 0.26940393447875977,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          },
+          {
+            "name": "file_io",
+            "success": true,
+            "duration_seconds": 0.1753861904144287,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          }
+        ]
+      },
+      "capabilities": {},
+      "capability_score": 0.0,
+      "cold_start_seconds": 0.13988804817199707,
+      "warm_start_seconds": null,
+      "agent_spawn_seconds": null,
+      "file_io_throughput_mbps": null
+    },
+    {
+      "provider": "daytona",
+      "success": true,
+      "total_time_seconds": 0.4792468547821045,
+      "tool_calls": 6,
+      "friction_points": 0,
+      "errors": 0,
+      "error_messages": [],
+      "estimated_cost_usd": 7.2e-05,
+      "sandbox_cost_usd": 7.2e-05,
+      "discoverability_score": 3.5,
+      "score": 95.2,
+      "grade": "A",
+      "trace": [
+        {
+          "timestamp": 1771865086.6737669,
+          "action": "authenticate",
+          "duration_ms": 2.1119117736816406,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771865086.801507,
+          "action": "create_sandbox",
+          "duration_ms": 127.73609161376953,
+          "success": true,
+          "details": {
+            "sandbox_id": "dbdbf7a9-1662-42c8-8718-77c7b7cd1485"
+          }
+        },
+        {
+          "timestamp": 1771865087.076769,
+          "action": "basic/execute_hello",
+          "duration_ms": 139.56093788146973,
+          "success": true,
+          "details": {
+            "stdout": "Hello from sandbox-bench!",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1771865087.076774,
+          "action": "basic/file_io",
+          "duration_ms": 135.6799602508545,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771865087.150898,
+          "action": "destroy",
+          "duration_ms": 74.11980628967285,
+          "success": true,
+          "details": {}
+        }
+      ],
+      "suites_run": [
+        "basic"
+      ],
+      "suite_results": {
+        "basic": [
+          {
+            "name": "execute_hello",
+            "success": true,
+            "duration_seconds": 0.13956093788146973,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          },
+          {
+            "name": "file_io",
+            "success": true,
+            "duration_seconds": 0.1356799602508545,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          }
+        ]
+      },
+      "capabilities": {},
+      "capability_score": 0.0,
+      "cold_start_seconds": 0.12773609161376953,
+      "warm_start_seconds": null,
+      "agent_spawn_seconds": null,
+      "file_io_throughput_mbps": null
+    },
+    {
+      "provider": "modal",
+      "success": true,
+      "total_time_seconds": 1.5437171459197998,
+      "tool_calls": 6,
+      "friction_points": 0,
+      "errors": 0,
+      "error_messages": [],
+      "estimated_cost_usd": 0.000253,
+      "sandbox_cost_usd": 0.000253,
+      "discoverability_score": 3.5,
+      "score": 95.0,
+      "grade": "A",
+      "trace": [
+        {
+          "timestamp": 1771865095.339984,
+          "action": "authenticate",
+          "duration_ms": 0.00286102294921875,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771865095.539225,
+          "action": "create_sandbox",
+          "duration_ms": 199.23830032348633,
+          "success": true,
+          "details": {
+            "sandbox_id": "sb-WeTOJXBGimxFNYmHkU7oN5"
+          }
+        },
+        {
+          "timestamp": 1771865096.834058,
+          "action": "basic/execute_hello",
+          "duration_ms": 1124.1521835327148,
+          "success": true,
+          "details": {
+            "stdout": "Hello from sandbox-bench!\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1771865096.834063,
+          "action": "basic/file_io",
+          "duration_ms": 170.66121101379395,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771865096.883691,
+          "action": "destroy",
+          "duration_ms": 49.6220588684082,
+          "success": true,
+          "details": {}
+        }
+      ],
+      "suites_run": [
+        "basic"
+      ],
+      "suite_results": {
+        "basic": [
+          {
+            "name": "execute_hello",
+            "success": true,
+            "duration_seconds": 1.1241521835327148,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          },
+          {
+            "name": "file_io",
+            "success": true,
+            "duration_seconds": 0.17066121101379395,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          }
+        ]
+      },
+      "capabilities": {},
+      "capability_score": 0.0,
+      "cold_start_seconds": 0.19923830032348633,
+      "warm_start_seconds": null,
+      "agent_spawn_seconds": null,
+      "file_io_throughput_mbps": null
+    },
+    {
+      "provider": "codesandbox",
+      "success": true,
+      "total_time_seconds": 19.2799129486084,
+      "tool_calls": 10,
+      "friction_points": 0,
+      "errors": 0,
+      "error_messages": [],
+      "estimated_cost_usd": 0.00536,
+      "sandbox_cost_usd": 0.00536,
+      "discoverability_score": 3.5,
+      "score": 92.1,
+      "grade": "A",
+      "trace": [
+        {
+          "timestamp": 1771865160.9898088,
+          "action": "authenticate",
+          "duration_ms": 204.04314994812012,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771865162.997973,
+          "action": "create_sandbox",
+          "duration_ms": 2008.1570148468018,
+          "success": true,
+          "details": {
+            "sandbox_id": "q8xgyf"
+          }
+        },
+        {
+          "timestamp": 1771865163.512345,
+          "action": "basic/execute_hello",
+          "duration_ms": 410.7069969177246,
+          "success": true,
+          "details": {
+            "stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\nHello from sandbox-bench!\r\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1771865163.512349,
+          "action": "basic/file_io",
+          "duration_ms": 103.6369800567627,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1771865180.065666,
+          "action": "destroy",
+          "duration_ms": 16553.312063217163,
+          "success": true,
+          "details": {}
+        }
+      ],
+      "suites_run": [
+        "basic"
+      ],
+      "suite_results": {
+        "basic": [
+          {
+            "name": "execute_hello",
+            "success": true,
+            "duration_seconds": 0.4107069969177246,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          },
+          {
+            "name": "file_io",
+            "success": true,
+            "duration_seconds": 0.1036369800567627,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          }
+        ]
+      },
+      "capabilities": {},
+      "capability_score": 0.0,
+      "cold_start_seconds": 2.0081570148468018,
+      "warm_start_seconds": null,
+      "agent_spawn_seconds": null,
+      "file_io_throughput_mbps": null
+    },
+    {
+      "provider": "fly",
+      "success": false,
+      "total_time_seconds": 0.07876420021057129,
+      "tool_calls": 0,
+      "friction_points": 0,
+      "errors": 1,
+      "error_messages": [
+        "Auth failed: Client error '401 Unauthorized' for url 'https://api.machines.dev/v1/apps?org_slug=personal'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"
+      ],
+      "estimated_cost_usd": 1e-06,
+      "sandbox_cost_usd": 1e-06,
+      "discoverability_score": 3.5,
+      "score": 0.0,
+      "grade": "F",
+      "trace": [
+        {
+          "timestamp": 1771865180.4994051,
+          "action": "authenticate",
+          "duration_ms": 78.7498950958252,
+          "success": false,
+          "details": {
+            "error": "Client error '401 Unauthorized' for url 'https://api.machines.dev/v1/apps?org_slug=personal'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"
+          }
+        }
+      ],
+      "suites_run": [
+        "basic"
+      ],
+      "suite_results": {},
+      "capabilities": {},
+      "capability_score": 0.0,
+      "cold_start_seconds": 0.0,
+      "warm_start_seconds": null,
+      "agent_spawn_seconds": null,
+      "file_io_throughput_mbps": null
+    }
+  ]
+}
