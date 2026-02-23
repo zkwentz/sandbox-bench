@@ -160,7 +160,7 @@ class BenchmarkRunner:
         self.traces = []
         errors: List[str] = []
         friction_points = 0
-        tool_calls = 0
+        provider.reset_api_calls()
 
         # Track timing for each phase
         times = {
@@ -186,7 +186,6 @@ class BenchmarkRunner:
             t0 = time.time()
             try:
                 await provider.authenticate(api_key)
-                tool_calls += 1
                 times["auth"] = time.time() - t0
                 self._trace("authenticate", times["auth"] * 1000, True)
             except Exception as e:
@@ -202,7 +201,6 @@ class BenchmarkRunner:
                 sandbox_id = await provider.create_sandbox(
                     timeout_seconds=self.config.timeout_seconds,
                 )
-                tool_calls += 1
                 times["create"] = time.time() - t0
                 self._trace("create_sandbox", times["create"] * 1000, True, sandbox_id=sandbox_id)
             except Exception as e:
@@ -236,7 +234,6 @@ class BenchmarkRunner:
                 # Accumulate metrics from phase results
                 suite_phase_dicts = []
                 for pr in phase_results:
-                    tool_calls += pr.tool_calls
                     friction_points += pr.friction_points
                     errors.extend(pr.error_messages)
                     all_phase_results.append(pr)
@@ -275,7 +272,6 @@ class BenchmarkRunner:
             try:
                 await provider.destroy(sandbox_id)
                 destroyed = True
-                tool_calls += 1
                 times["destroy"] = time.time() - t0
                 self._trace("destroy", times["destroy"] * 1000, True)
             except Exception as e:
@@ -295,6 +291,7 @@ class BenchmarkRunner:
                     pass
 
         total_time = time.time() - start_time
+        tool_calls = provider.api_calls
 
         # Provider-specific cost estimation
         sandbox_cost = estimate_sandbox_cost(provider.name, total_time)

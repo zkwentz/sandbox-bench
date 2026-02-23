@@ -159,6 +159,7 @@ class CodeSandboxProvider(SandboxProvider):
             params={"page_size": 1},
         )
         resp.raise_for_status()
+        self._count_api_call()
 
     async def create_sandbox(
         self,
@@ -174,6 +175,7 @@ class CodeSandboxProvider(SandboxProvider):
             json={},
         )
         fork_resp.raise_for_status()
+        self._count_api_call()
         fork_data = fork_resp.json()
         self._sandbox_id = fork_data["data"]["id"]
 
@@ -183,6 +185,7 @@ class CodeSandboxProvider(SandboxProvider):
             json={},
         )
         start_resp.raise_for_status()
+        self._count_api_call()
         start_data = start_resp.json()["data"]
 
         pitcher_url = start_data["pitcher_url"]
@@ -194,6 +197,7 @@ class CodeSandboxProvider(SandboxProvider):
         # Connect via pitcher WebSocket protocol
         self._pitcher = PitcherClient()
         await self._pitcher.connect(pitcher_url, pitcher_token)
+        self._count_api_call()
 
         return self._sandbox_id
 
@@ -233,6 +237,7 @@ class CodeSandboxProvider(SandboxProvider):
                 "type": "COMMAND",
                 "size": {"cols": 200, "rows": 50},
             })
+            self._count_api_call()
 
             # The initial buffer may contain output
             buffer = result.get("buffer", [])
@@ -277,6 +282,7 @@ class CodeSandboxProvider(SandboxProvider):
             "create": True,
             "overwrite": True,
         })
+        self._count_api_call()
 
     async def read_file(
         self,
@@ -287,6 +293,7 @@ class CodeSandboxProvider(SandboxProvider):
         result = await self._pitcher.request("fs/readFile", {
             "path": path,
         })
+        self._count_api_call()
         content = result.get("content", b"")
         if isinstance(content, bytes):
             return content.decode("utf-8")
@@ -297,6 +304,7 @@ class CodeSandboxProvider(SandboxProvider):
         try:
             if self._pitcher:
                 await self._pitcher.close()
+                self._count_api_call()
         except Exception:
             pass
         try:
@@ -305,11 +313,13 @@ class CodeSandboxProvider(SandboxProvider):
                     await self._mgmt_client.post(
                         f"{self.MANAGEMENT_URL}/vm/{self._sandbox_id}/shutdown",
                     )
+                    self._count_api_call()
                 except Exception:
                     pass
                 await self._mgmt_client.delete(
                     f"{self.MANAGEMENT_URL}/vm/{self._sandbox_id}",
                 )
+                self._count_api_call()
         except Exception:
             pass
         finally:

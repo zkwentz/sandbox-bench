@@ -35,6 +35,7 @@ class DaytonaProvider(SandboxProvider):
             os.environ["DAYTONA_API_KEY"] = api_key
             config = DaytonaConfig(api_key=api_key)
             self._client = Daytona(config)
+            self._count_api_call()
         except ImportError:
             raise ImportError("daytona-sdk package required: pip install daytona-sdk")
     
@@ -45,6 +46,7 @@ class DaytonaProvider(SandboxProvider):
     ) -> str:
         """Create a Daytona sandbox."""
         self._sandbox = self._client.create()
+        self._count_api_call()
         return self._sandbox.id
     
     async def execute(
@@ -59,7 +61,8 @@ class DaytonaProvider(SandboxProvider):
             response = self._sandbox.process.code_run(code)
         else:
             response = self._sandbox.process.exec(f"echo '{code}' | {language}")
-        
+        self._count_api_call()
+
         # Handle the response based on available attributes
         stdout = getattr(response, 'result', '') or ''
         stderr = ''
@@ -77,6 +80,7 @@ class DaytonaProvider(SandboxProvider):
         if isinstance(content, str):
             content = content.encode('utf-8')
         self._sandbox.fs.upload_file(content, path)
+        self._count_api_call()
     
     async def read_file(
         self,
@@ -85,6 +89,7 @@ class DaytonaProvider(SandboxProvider):
     ) -> str | bytes:
         """Read file from Daytona sandbox."""
         content = self._sandbox.fs.download_file(path)
+        self._count_api_call()
         # Return as string for comparison
         if isinstance(content, bytes):
             return content.decode('utf-8')
@@ -94,6 +99,7 @@ class DaytonaProvider(SandboxProvider):
         """Destroy Daytona sandbox."""
         if self._sandbox:
             self._client.delete(self._sandbox)
+            self._count_api_call()
 
 
 # Register the provider

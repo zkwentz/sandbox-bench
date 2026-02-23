@@ -22,13 +22,27 @@ class ProviderInfo:
 
 class SandboxProvider(ABC):
     """Base class for sandbox providers."""
-    
+
     name: str = "base"
     info: ProviderInfo = ProviderInfo(
         name="base",
         description="Base provider",
         docs_url="",
     )
+    _api_call_count: int = 0
+
+    @property
+    def api_calls(self) -> int:
+        """Number of actual API/network calls made by this provider."""
+        return self._api_call_count
+
+    def reset_api_calls(self) -> None:
+        """Reset the API call counter."""
+        self._api_call_count = 0
+
+    def _count_api_call(self, n: int = 1) -> None:
+        """Increment the API call counter."""
+        self._api_call_count += n
     
     @abstractmethod
     async def authenticate(self, api_key: str) -> None:

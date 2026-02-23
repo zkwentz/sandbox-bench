@@ -46,18 +46,20 @@ class ModalProvider(SandboxProvider):
         
         # Use App.lookup pattern as required by current Modal SDK
         app = modal.App.lookup("sandbox-bench", create_if_missing=True)
-        
+        self._count_api_call()
+
         img = modal.Image.debian_slim(python_version="3.12").pip_install("numpy")
         if image:
             img = modal.Image.from_registry(image)
-        
+
         self._sandbox = modal.Sandbox.create(
             "sleep", "infinity",
             image=img,
             timeout=timeout_seconds,
             app=app,
         )
-        
+        self._count_api_call()
+
         return self._sandbox.object_id
     
     async def execute(
@@ -72,12 +74,13 @@ class ModalProvider(SandboxProvider):
             process = self._sandbox.exec("python", "-c", code)
         else:
             process = self._sandbox.exec(language, "-c", code)
-        
+        self._count_api_call()
+
         process.wait()
-        
+
         stdout = process.stdout.read()
         stderr = process.stderr.read()
-        
+
         return (stdout, stderr, process.returncode)
     
     async def write_file(
@@ -96,6 +99,7 @@ class ModalProvider(SandboxProvider):
             "python", "-c",
             f"import base64; open('{path}', 'wb').write(base64.b64decode('{b64}'))"
         )
+        self._count_api_call()
         process.wait()
     
     async def read_file(
@@ -105,6 +109,7 @@ class ModalProvider(SandboxProvider):
     ) -> str | bytes:
         """Read file from Modal sandbox."""
         process = self._sandbox.exec("cat", path)
+        self._count_api_call()
         process.wait()
         return process.stdout.read()
     
@@ -112,6 +117,7 @@ class ModalProvider(SandboxProvider):
         """Terminate Modal sandbox."""
         if self._sandbox:
             self._sandbox.terminate()
+            self._count_api_call()
 
 
 # Register the provider

@@ -65,6 +65,7 @@ class E2BProvider(SandboxProvider):
             from e2b import Sandbox
 
         sb = Sandbox.create(timeout=timeout_seconds)
+        self._count_api_call()
         self._sandboxes[sb.sandbox_id] = sb
         return sb.sandbox_id
 
@@ -79,6 +80,7 @@ class E2BProvider(SandboxProvider):
         sb = self._get(sandbox_id)
         if language == "python" and self._has_code_interpreter:
             execution = sb.run_code(code)
+            self._count_api_call()
             stdout = ""
             stderr = ""
             if execution.logs:
@@ -90,9 +92,11 @@ class E2BProvider(SandboxProvider):
         elif language == "python":
             cmd = f"python3 -c {shlex.quote(code)}"
             result = sb.commands.run(cmd, timeout=timeout_seconds)
+            self._count_api_call()
             return (result.stdout or "", result.stderr or "", result.exit_code)
         else:
             result = sb.commands.run(code, timeout=timeout_seconds)
+            self._count_api_call()
             return (result.stdout or "", result.stderr or "", result.exit_code)
 
     async def execute_command(
@@ -104,6 +108,7 @@ class E2BProvider(SandboxProvider):
         """Execute a shell command directly via E2B commands API."""
         sb = self._get(sandbox_id)
         result = sb.commands.run(command, timeout=timeout_seconds)
+        self._count_api_call()
         return (result.stdout or "", result.stderr or "", result.exit_code)
 
     async def write_file(
@@ -117,6 +122,7 @@ class E2BProvider(SandboxProvider):
         if isinstance(content, bytes):
             content = content.decode('utf-8')
         sb.files.write(path, content)
+        self._count_api_call()
 
     async def read_file(
         self,
@@ -125,13 +131,16 @@ class E2BProvider(SandboxProvider):
     ) -> str | bytes:
         """Read file from E2B sandbox."""
         sb = self._get(sandbox_id)
-        return sb.files.read(path)
+        content = sb.files.read(path)
+        self._count_api_call()
+        return content
 
     async def destroy(self, sandbox_id: str) -> None:
         """Destroy E2B sandbox."""
         sb = self._sandboxes.pop(sandbox_id, None)
         if sb is not None:
             sb.kill()
+            self._count_api_call()
 
 
 # Register the provider

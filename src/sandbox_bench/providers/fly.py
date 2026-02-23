@@ -46,10 +46,12 @@ class FlyProvider(SandboxProvider):
             params={"org_slug": "personal"},
         )
         resp.raise_for_status()
+        self._count_api_call()
 
     async def _ensure_app(self) -> None:
         """Create the sandbox-bench app if it doesn't exist."""
         resp = await self._client.get(f"{self.BASE_URL}/apps/{self._app_name}")
+        self._count_api_call()
         if resp.status_code == 404:
             create_resp = await self._client.post(
                 f"{self.BASE_URL}/apps",
@@ -58,6 +60,7 @@ class FlyProvider(SandboxProvider):
                     "org_slug": "personal",
                 },
             )
+            self._count_api_call()
             # 422 means app already exists (race condition), which is fine
             if create_resp.status_code not in (200, 201, 422):
                 create_resp.raise_for_status()
@@ -93,6 +96,7 @@ class FlyProvider(SandboxProvider):
             },
         )
         resp.raise_for_status()
+        self._count_api_call()
 
         data = resp.json()
         self._machine_id = data["id"]
@@ -104,6 +108,7 @@ class FlyProvider(SandboxProvider):
             timeout=70.0,
         )
         wait_resp.raise_for_status()
+        self._count_api_call()
 
         return self._machine_id
 
@@ -129,6 +134,7 @@ class FlyProvider(SandboxProvider):
             timeout=timeout_seconds + 10,
         )
         resp.raise_for_status()
+        self._count_api_call()
 
         data = resp.json()
         return (
@@ -177,6 +183,7 @@ class FlyProvider(SandboxProvider):
                     f"{self.BASE_URL}/apps/{self._app_name}/machines/{sandbox_id}",
                     params={"force": "true"},
                 )
+                self._count_api_call()
             except Exception:
                 pass
         if self._client:
