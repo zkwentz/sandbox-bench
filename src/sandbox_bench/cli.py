@@ -33,6 +33,8 @@ def load_api_keys(env_file: str | None = None) -> Dict[str, str]:
         # Generic providers - pass image name or VM command
         "docker-image": os.environ.get("DOCKER_IMAGE", ""),
         "microvm": os.environ.get("MICROVM_COMMAND", ""),
+        # Meta internal
+        "vmvm": os.environ.get("VMVM_TENANT_ID", ""),
     }
 
 

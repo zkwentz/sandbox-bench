@@ -1,0 +1,172 @@
+{
+  "config": {
+    "providers": [
+      "vmvm"
+    ],
+    "suites": [
+      "environment"
+    ],
+    "agent_mode": false,
+    "model": "claude-opus-4",
+    "runs": 3
+  },
+  "results": [
+    {
+      "provider": "vmvm",
+      "success": true,
+      "total_time_seconds": 7.599675416946411,
+      "tool_calls": 11,
+      "friction_points": 2,
+      "errors": 0,
+      "error_messages": [],
+      "estimated_cost_usd": 0.0,
+      "sandbox_cost_usd": 0.0,
+      "discoverability_score": 3.5,
+      "score": 84.2,
+      "grade": "B",
+      "trace": [
+        {
+          "timestamp": 1772129306.8109813,
+          "action": "authenticate",
+          "duration_ms": 234.50541496276855,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1772129307.614686,
+          "action": "create_sandbox",
+          "duration_ms": 803.6942481994629,
+          "success": true,
+          "details": {
+            "sandbox_id": "019c9b23-3ccd-7d41-9f1a-8518931a75ce"
+          }
+        },
+        {
+          "timestamp": 1772129313.9620502,
+          "action": "environment/node_available",
+          "duration_ms": 136.9457244873047,
+          "success": false,
+          "details": {
+            "version": ""
+          }
+        },
+        {
+          "timestamp": 1772129313.9620593,
+          "action": "environment/npm_install",
+          "duration_ms": 492.8920269012451,
+          "success": false,
+          "details": {
+            "stdout": "bash: line 1: npm: command not found\n",
+            "exit_code": 127
+          }
+        },
+        {
+          "timestamp": 1772129313.9620633,
+          "action": "environment/project_clone",
+          "duration_ms": 1458.7831497192383,
+          "success": true,
+          "details": {
+            "stdout": "Cloning into '/tmp/express-test'...\n",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772129313.962067,
+          "action": "environment/multi_step_build",
+          "duration_ms": 132.07364082336426,
+          "success": true,
+          "details": {
+            "stdout": "bash: line 1: npm: command not found\nbash: line 1: npm: command not found\n",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772129313.962069,
+          "action": "environment/python_venv",
+          "duration_ms": 4126.582384109497,
+          "success": true,
+          "details": {
+            "stdout": "WARNING: You are using pip version 21.3.1; however, version 26.0.1 is available.\nYou should consider upgrading via the '/tmp/test-venv/bin/python3 -m pip install --upgrade pip' command.\n3.1.3\n",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772129314.1761334,
+          "action": "destroy",
+          "duration_ms": 214.05577659606934,
+          "success": true,
+          "details": {}
+        }
+      ],
+      "suites_run": [
+        "environment"
+      ],
+      "suite_results": {
+        "environment": [
+          {
+            "name": "node_available",
+            "success": false,
+            "duration_seconds": 0.1369457244873047,
+            "tool_calls": 1,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "nodejs",
+            "capability_supported": false
+          },
+          {
+            "name": "npm_install",
+            "success": false,
+            "duration_seconds": 0.4928920269012451,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "npm",
+            "capability_supported": false
+          },
+          {
+            "name": "project_clone",
+            "success": true,
+            "duration_seconds": 1.4587831497192383,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "project_clone",
+            "capability_supported": true
+          },
+          {
+            "name": "multi_step_build",
+            "success": true,
+            "duration_seconds": 0.13207364082336426,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "multi_step_build",
+            "capability_supported": true
+          },
+          {
+            "name": "python_venv",
+            "success": true,
+            "duration_seconds": 4.126582384109497,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "python_venv",
+            "capability_supported": true
+          }
+        ]
+      },
+      "capabilities": {
+        "nodejs": false,
+        "npm": false,
+        "project_clone": true,
+        "multi_step_build": true,
+        "python_venv": true
+      },
+      "capability_score": 0.6,
+      "cold_start_seconds": 0.8036942481994629,
+      "warm_start_seconds": null,
+      "agent_spawn_seconds": null,
+      "file_io_throughput_mbps": null
+    }
+  ]
+}

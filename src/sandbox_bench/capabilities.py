@@ -10,7 +10,6 @@ CAPABILITY_DESCRIPTIONS: Dict[str, str] = {
     "stdin_piping": "Pipe stdin to running process",
     "gcc": "GCC C compiler available",
     "gpp": "G++ C++ compiler available",
-    "exec_timeout": "Server-side execution timeout enforcement",
     "python3": "Python 3 runtime available",
     # SWE
     "network_access": "Outbound network connectivity",

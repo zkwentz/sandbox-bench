@@ -1,0 +1,237 @@
+{
+  "config": {
+    "providers": [
+      "vmvm"
+    ],
+    "suites": [
+      "basic",
+      "performance"
+    ],
+    "agent_mode": false,
+    "model": "claude-opus-4",
+    "runs": 3
+  },
+  "results": [
+    {
+      "provider": "vmvm",
+      "success": true,
+      "total_time_seconds": 151.21477937698364,
+      "tool_calls": 31,
+      "friction_points": 0,
+      "errors": 0,
+      "error_messages": [],
+      "estimated_cost_usd": 0.0,
+      "sandbox_cost_usd": 0.0,
+      "discoverability_score": 3.5,
+      "score": 78.2,
+      "grade": "B",
+      "trace": [
+        {
+          "timestamp": 1772128868.9265678,
+          "action": "authenticate",
+          "duration_ms": 228.5783290863037,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1772128869.8084571,
+          "action": "create_sandbox",
+          "duration_ms": 881.8771839141846,
+          "success": true,
+          "details": {
+            "sandbox_id": "019c9b17-9e44-78d3-b1e8-c7cf8fabf575"
+          }
+        },
+        {
+          "timestamp": 1772128870.6424894,
+          "action": "basic/execute_hello",
+          "duration_ms": 167.982816696167,
+          "success": true,
+          "details": {
+            "stdout": "Hello from sandbox-bench!\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772128870.6424954,
+          "action": "basic/file_io",
+          "duration_ms": 666.0122871398926,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1772129019.6485972,
+          "action": "performance/agent_spawn",
+          "duration_ms": 714.8692607879639,
+          "success": true,
+          "details": {
+            "agent_spawn_seconds": 0.7149,
+            "create_seconds": 0.5973,
+            "first_exec_seconds": 0.1176
+          }
+        },
+        {
+          "timestamp": 1772129019.648608,
+          "action": "performance/warm_start",
+          "duration_ms": 873.8284111022949,
+          "success": true,
+          "details": {
+            "warm_start_seconds": 0.8738284111022949
+          }
+        },
+        {
+          "timestamp": 1772129019.6486146,
+          "action": "performance/file_io_1mb_write",
+          "duration_ms": 2825.6213665008545,
+          "success": true,
+          "details": {
+            "size_mb": 1,
+            "throughput_mbps": 0.35
+          }
+        },
+        {
+          "timestamp": 1772129019.6486206,
+          "action": "performance/file_io_1mb_read",
+          "duration_ms": 10935.352087020874,
+          "success": true,
+          "details": {
+            "size_mb": 1.0,
+            "throughput_mbps": 0.09
+          }
+        },
+        {
+          "timestamp": 1772129019.6486251,
+          "action": "performance/file_io_10mb",
+          "duration_ms": 131951.28393173218,
+          "success": true,
+          "details": {
+            "write_mbps": 0.4,
+            "read_mbps": 0.09,
+            "write_seconds": 25.256,
+            "read_seconds": 106.692
+          }
+        },
+        {
+          "timestamp": 1772129019.6486294,
+          "action": "performance/rapid_exec",
+          "duration_ms": 1275.4926681518555,
+          "success": true,
+          "details": {
+            "avg_latency_ms": 127.5,
+            "min_latency_ms": 121.1,
+            "max_latency_ms": 157.4,
+            "iterations": 10,
+            "failures": 0
+          }
+        },
+        {
+          "timestamp": 1772129019.9127433,
+          "action": "destroy",
+          "duration_ms": 264.10484313964844,
+          "success": true,
+          "details": {}
+        }
+      ],
+      "suites_run": [
+        "basic",
+        "performance"
+      ],
+      "suite_results": {
+        "basic": [
+          {
+            "name": "execute_hello",
+            "success": true,
+            "duration_seconds": 0.167982816696167,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          },
+          {
+            "name": "file_io",
+            "success": true,
+            "duration_seconds": 0.6660122871398926,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          }
+        ],
+        "performance": [
+          {
+            "name": "agent_spawn",
+            "success": true,
+            "duration_seconds": 0.7148692607879639,
+            "tool_calls": 3,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "agent_spawn",
+            "capability_supported": true
+          },
+          {
+            "name": "warm_start",
+            "success": true,
+            "duration_seconds": 0.8738284111022949,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "warm_start",
+            "capability_supported": true
+          },
+          {
+            "name": "file_io_1mb_write",
+            "success": true,
+            "duration_seconds": 2.8256213665008545,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          },
+          {
+            "name": "file_io_1mb_read",
+            "success": true,
+            "duration_seconds": 10.935352087020874,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          },
+          {
+            "name": "file_io_10mb",
+            "success": true,
+            "duration_seconds": 131.95128393173218,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          },
+          {
+            "name": "rapid_exec",
+            "success": true,
+            "duration_seconds": 1.2754926681518555,
+            "tool_calls": 10,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          }
+        ]
+      },
+      "capabilities": {
+        "agent_spawn": true,
+        "warm_start": true
+      },
+      "capability_score": 1.0,
+      "cold_start_seconds": 0.8818771839141846,
+      "warm_start_seconds": 0.8738284111022949,
+      "agent_spawn_seconds": 0.7149,
+      "file_io_throughput_mbps": 0.35
+    }
+  ]
+}

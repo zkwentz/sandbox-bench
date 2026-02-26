@@ -1,0 +1,154 @@
+{
+  "config": {
+    "providers": [
+      "vmvm"
+    ],
+    "suites": [
+      "competitive"
+    ],
+    "agent_mode": false,
+    "model": "claude-opus-4",
+    "runs": 3
+  },
+  "results": [
+    {
+      "provider": "vmvm",
+      "success": true,
+      "total_time_seconds": 2.491102933883667,
+      "tool_calls": 12,
+      "friction_points": 0,
+      "errors": 0,
+      "error_messages": [],
+      "estimated_cost_usd": 0.0,
+      "sandbox_cost_usd": 0.0,
+      "discoverability_score": 3.5,
+      "score": 94.4,
+      "grade": "A",
+      "trace": [
+        {
+          "timestamp": 1772129134.7896674,
+          "action": "authenticate",
+          "duration_ms": 234.17425155639648,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1772129135.3980064,
+          "action": "create_sandbox",
+          "duration_ms": 608.3285808563232,
+          "success": true,
+          "details": {
+            "sandbox_id": "019c9b01-6779-7180-84d3-261116125fdf"
+          }
+        },
+        {
+          "timestamp": 1772129136.880518,
+          "action": "competitive/stdin_piping",
+          "duration_ms": 123.42667579650879,
+          "success": true,
+          "details": {
+            "stdout": "8\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772129136.880526,
+          "action": "competitive/gcc_compilation",
+          "duration_ms": 468.28341484069824,
+          "success": true,
+          "details": {
+            "stdout": "hello-c\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772129136.88053,
+          "action": "competitive/cpp_compilation",
+          "duration_ms": 767.2452926635742,
+          "success": true,
+          "details": {
+            "stdout": "hello-cpp\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772129136.8805327,
+          "action": "competitive/python_version",
+          "duration_ms": 123.47579002380371,
+          "success": true,
+          "details": {
+            "version": "Python 3.9.25"
+          }
+        },
+        {
+          "timestamp": 1772129137.0465782,
+          "action": "destroy",
+          "duration_ms": 166.03636741638184,
+          "success": true,
+          "details": {}
+        }
+      ],
+      "suites_run": [
+        "competitive"
+      ],
+      "suite_results": {
+        "competitive": [
+          {
+            "name": "stdin_piping",
+            "success": true,
+            "duration_seconds": 0.12342667579650879,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "stdin_piping",
+            "capability_supported": true
+          },
+          {
+            "name": "gcc_compilation",
+            "success": true,
+            "duration_seconds": 0.46828341484069824,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "gcc",
+            "capability_supported": true
+          },
+          {
+            "name": "cpp_compilation",
+            "success": true,
+            "duration_seconds": 0.7672452926635742,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "gpp",
+            "capability_supported": true
+          },
+          {
+            "name": "python_version",
+            "success": true,
+            "duration_seconds": 0.12347579002380371,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "python3",
+            "capability_supported": true
+          }
+        ]
+      },
+      "capabilities": {
+        "stdin_piping": true,
+        "gcc": true,
+        "gpp": true,
+        "python3": true
+      },
+      "capability_score": 1.0,
+      "cold_start_seconds": 0.6083285808563232,
+      "warm_start_seconds": null,
+      "agent_spawn_seconds": null,
+      "file_io_throughput_mbps": null
+    }
+  ]
+}

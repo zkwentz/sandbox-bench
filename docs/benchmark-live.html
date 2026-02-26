@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sandbox-bench | AI Agent Sandbox Provider Benchmarks</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface-2: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-hover: #79c0ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --orange: #db6d28;
+    --red: #f85149;
+    --grade-a: #3fb950;
+    --grade-b: #58a6ff;
+    --grade-c: #d29922;
+    --grade-d: #db6d28;
+    --grade-f: #f85149;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+  /* GitHub corner ribbon */
+  .github-corner svg {
+    fill: var(--accent); color: var(--bg);
+    position: fixed; top: 0; right: 0; z-index: 1000; border: 0;
+  }
+  .github-corner:hover .octo-arm { animation: octocat-wave 560ms ease-in-out; }
+  @keyframes octocat-wave {
+    0%, 100% { transform: rotate(0); }
+    20%, 60% { transform: rotate(-25deg); }
+    40%, 80% { transform: rotate(10deg); }
+  }
+
+  header { border-bottom: 1px solid var(--border); padding: 32px 0; }
+  header .container {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+  }
+
+  .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+  .logo:hover .logo-icon { transform: scale(1.05); }
+  .logo:hover h1 {
+    background: linear-gradient(135deg, var(--accent), #a371f7);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--accent), #a371f7);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 700; color: white; transition: transform 0.2s;
+  }
+  .logo h1 {
+    font-size: 24px; font-weight: 600;
+    background: linear-gradient(135deg, var(--text), var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .logo p { font-size: 14px; color: var(--text-muted); }
+
+  .header-links { display: flex; gap: 12px; align-items: center; }
+  .header-links a {
+    color: var(--text-muted); text-decoration: none; font-size: 14px;
+    padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); transition: all 0.2s;
+  }
+  .header-links a:hover { color: var(--text); border-color: var(--text-muted); }
+
+  /* Running banner */
+  .running-banner {
+    background: linear-gradient(90deg, rgba(210,153,34,0.1), rgba(210,153,34,0.05), rgba(210,153,34,0.1));
+    border: 1px solid rgba(210,153,34,0.3); border-radius: 8px;
+    padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+    margin-top: 24px; font-size: 14px;
+  }
+  .running-spinner {
+    width: 16px; height: 16px; flex-shrink: 0;
+    border: 2px solid rgba(210,153,34,0.3); border-top-color: var(--yellow);
+    border-radius: 50%; animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Controls row */
+  .controls {
+    padding: 24px 0 0; display: flex; align-items: center;
+    justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  }
+  .run-info { font-size: 13px; color: var(--text-muted); }
+
+  /* Suite tabs */
+  .suite-tabs {
+    display: flex; gap: 4px; margin: 20px 0 24px;
+    border-bottom: 1px solid var(--border); overflow-x: auto;
+  }
+  .suite-tab {
+    padding: 10px 20px; font-size: 14px; font-weight: 500;
+    color: var(--text-muted); border-bottom: 2px solid transparent;
+    cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    background: none; border-top: none; border-left: none; border-right: none;
+  }
+  .suite-tab:hover { color: var(--text); }
+  .suite-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .suite-tab .tab-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 20px; height: 20px; border-radius: 10px; font-size: 11px;
+    margin-left: 6px; padding: 0 6px;
+    background: var(--surface-2); color: var(--text-muted);
+  }
+  .suite-tab.active .tab-count { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .suite-tab-pending {
+    font-size: 10px; color: var(--yellow); margin-left: 6px;
+  }
+
+  /* Suite breakdown in overall view */
+  .suite-breakdown {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+    margin-top: 6px;
+  }
+  .suite-breakdown-item {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 8px 4px; border-radius: 6px; background: var(--surface-2);
+    border: 1px solid var(--border); transition: border-color 0.2s;
+  }
+  .suite-breakdown-item:hover { border-color: var(--accent); }
+  .suite-breakdown-label { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+  .suite-breakdown-score { font-size: 16px; font-weight: 700; }
+  .suite-breakdown-tests { margin-top: 1px; }
+  @media (max-width: 700px) {
+    .suite-breakdown { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  /* Sections */
+  .section { margin-bottom: 48px; }
+  .section-title {
+    font-size: 20px; font-weight: 600; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* Score chart */
+  .chart-container {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px;
+  }
+  .bar-chart { display: flex; flex-direction: column; gap: 16px; }
+  .chart-row { display: grid; grid-template-columns: 120px 1fr 60px; align-items: center; gap: 12px; }
+  .chart-provider { font-size: 14px; font-weight: 500; text-align: right; }
+  .chart-bar-container {
+    height: 32px; background: var(--surface-2); border-radius: 6px;
+    overflow: hidden; position: relative;
+  }
+  .chart-bar {
+    height: 100%; border-radius: 6px;
+    transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+    position: relative; min-width: 2px;
+  }
+  .chart-bar.grade-A { background: linear-gradient(90deg, var(--grade-a), #56d364); }
+  .chart-bar.grade-B { background: linear-gradient(90deg, var(--grade-b), var(--accent-hover)); }
+  .chart-bar.grade-C { background: linear-gradient(90deg, var(--grade-c), #e3b341); }
+  .chart-bar.grade-D { background: linear-gradient(90deg, var(--grade-d), #e09b5a); }
+  .chart-bar.grade-F { background: linear-gradient(90deg, var(--grade-f), #ff7b72); }
+  .chart-bar.pending {
+    background: repeating-linear-gradient(
+      -45deg, var(--surface-2), var(--surface-2) 8px,
+      rgba(210,153,34,0.15) 8px, rgba(210,153,34,0.15) 16px
+    );
+    animation: barberpole 1s linear infinite;
+  }
+  @keyframes barberpole { to { background-position: 22.6px 0; } }
+  .chart-score { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* Leaderboard */
+  .leaderboard { display: grid; gap: 12px; }
+  .provider-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 24px;
+    display: grid; grid-template-columns: 48px 1fr auto;
+    align-items: center; gap: 20px; transition: border-color 0.2s; cursor: pointer;
+  }
+  .provider-card:hover { border-color: var(--accent); }
+  .provider-card.failed { opacity: 0.5; }
+  .provider-card.pending-card {
+    border-style: dashed; border-color: rgba(210,153,34,0.3);
+    background: linear-gradient(135deg, var(--surface), rgba(210,153,34,0.03));
+  }
+
+  .rank { font-size: 28px; font-weight: 700; color: var(--text-muted); text-align: center; }
+  .provider-card:nth-child(1) .rank { color: #ffd700; }
+  .provider-card:nth-child(2) .rank { color: #c0c0c0; }
+  .provider-card:nth-child(3) .rank { color: #cd7f32; }
+
+  .provider-info { display: flex; flex-direction: column; gap: 8px; }
+  .provider-name-row { display: flex; align-items: center; gap: 12px; }
+  .provider-name { font-size: 18px; font-weight: 600; }
+
+  .grade-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 8px;
+    font-weight: 700; font-size: 16px; color: white;
+  }
+  .grade-A { background: var(--grade-a); }
+  .grade-B { background: var(--grade-b); }
+  .grade-C { background: var(--grade-c); }
+  .grade-D { background: var(--grade-d); }
+  .grade-F { background: var(--grade-f); }
+  .grade-pending {
+    background: var(--surface-2); border: 1px dashed var(--yellow);
+    color: var(--yellow); font-size: 12px;
+  }
+
+  .provider-metrics { display: flex; gap: 24px; flex-wrap: wrap; }
+  .metric { display: flex; flex-direction: column; gap: 2px; }
+  .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+  .metric-value { font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  .score-display { text-align: center; min-width: 80px; }
+  .score-number { font-size: 36px; font-weight: 700; line-height: 1; }
+  .score-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-top: 4px; }
+
+  .status-pass { color: var(--green); }
+  .status-fail { color: var(--red); }
+  .status-pending { color: var(--yellow); }
+
+  /* Suite test results within card */
+  .suite-tests {
+    margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+  }
+  .suite-tests-title {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-muted); margin-bottom: 8px;
+  }
+  .test-results { display: flex; gap: 8px; flex-wrap: wrap; }
+  .test-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500;
+  }
+  .test-chip.pass { background: rgba(63,185,80,0.12); color: var(--green); }
+  .test-chip.fail { background: rgba(248,81,73,0.12); color: var(--red); }
+  .test-chip .test-time { font-weight: 400; opacity: 0.7; margin-left: 4px; }
+
+  /* Trace timeline */
+  .trace-section {
+    margin-top: 12px; padding: 16px; background: var(--surface-2);
+    border-radius: 8px; display: none;
+  }
+  .trace-section.active { display: block; }
+  .trace-timeline { display: flex; gap: 4px; align-items: flex-end; height: 80px; padding: 8px 0; }
+  .trace-step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .trace-bar { width: 100%; border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.3s; }
+  .trace-bar.success { background: var(--green); }
+  .trace-bar.failure { background: var(--red); }
+  .trace-label { font-size: 10px; color: var(--text-muted); text-align: center; white-space: nowrap; }
+  .trace-duration { font-size: 11px; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  /* Breakdown table */
+  .breakdown-table {
+    width: 100%; border-collapse: collapse; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  }
+  .breakdown-table th, .breakdown-table td {
+    padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border);
+  }
+  .breakdown-table th {
+    background: var(--surface-2); font-size: 12px; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600;
+  }
+  .breakdown-table tr:last-child td { border-bottom: none; }
+  .breakdown-table td { font-size: 14px; font-variant-numeric: tabular-nums; }
+  .breakdown-table .provider-cell { font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+  .mini-grade {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 6px;
+    font-weight: 700; font-size: 12px; color: white;
+  }
+
+  /* Capabilities matrix */
+  .cap-matrix {
+    width: 100%; border-collapse: collapse; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 12px; overflow: hidden;
+  }
+  .cap-matrix th, .cap-matrix td {
+    padding: 10px 14px; text-align: center; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .cap-matrix th {
+    background: var(--surface-2); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.3px; color: var(--text-muted); font-weight: 600;
+  }
+  .cap-matrix th:first-child, .cap-matrix td:first-child { text-align: left; font-weight: 600; }
+  .cap-matrix tr:last-child td { border-bottom: none; }
+  .cap-yes { color: var(--green); font-weight: 700; }
+  .cap-no { color: var(--red); font-weight: 700; }
+  .cap-na { color: var(--text-muted); }
+
+  /* Performance bars */
+  .perf-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;
+  }
+  .perf-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+  }
+  .perf-card h3 {
+    font-size: 14px; font-weight: 600; margin-bottom: 12px;
+    color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .perf-rows { display: flex; flex-direction: column; gap: 10px; }
+  .perf-row { display: grid; grid-template-columns: 100px 1fr 60px; align-items: center; gap: 8px; }
+  .perf-label { font-size: 13px; font-weight: 500; text-align: right; }
+  .perf-bar-track { height: 20px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+  .perf-bar-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.6s ease; }
+  .perf-value { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* Methodology */
+  .methodology {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px;
+  }
+  .weight-bars {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px; margin-top: 16px;
+  }
+  .weight-item { display: flex; flex-direction: column; gap: 6px; }
+  .weight-header { display: flex; justify-content: space-between; font-size: 13px; }
+  .weight-name { font-weight: 500; }
+  .weight-pct { color: var(--text-muted); }
+  .weight-track { height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+  .weight-fill { height: 100%; border-radius: 3px; background: var(--accent); }
+
+  /* Tooltips */
+  .tip { position: relative; cursor: help; border-bottom: 1px dotted var(--text-muted); }
+  .tip-bubble {
+    display: none; position: fixed;
+    background: #1c2028; border: 1px solid var(--border);
+    padding: 12px 14px; border-radius: 8px; font-size: 12px; line-height: 1.5;
+    color: var(--text); width: 320px; max-width: 90vw; z-index: 10000;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4); pointer-events: none;
+    font-weight: 400; text-transform: none; letter-spacing: normal;
+  }
+  .tip-bubble .tip-title { font-weight: 600; margin-bottom: 4px; color: var(--accent); font-size: 12px; }
+  .tip-bubble .tip-why {
+    color: var(--text-muted); font-size: 11px; margin-top: 6px;
+    padding-top: 6px; border-top: 1px solid var(--border);
+  }
+  .tip-bubble .tip-why strong { color: var(--yellow); }
+  .tip-bubble.visible { display: block; }
+
+  .error-tooltip { position: relative; cursor: help; }
+  .error-tooltip:hover::after {
+    content: attr(data-error); position: absolute; bottom: 100%; left: 50%;
+    transform: translateX(-50%); background: var(--surface-2); border: 1px solid var(--border);
+    padding: 8px 12px; border-radius: 6px; font-size: 12px; white-space: nowrap;
+    max-width: 300px; overflow: hidden; text-overflow: ellipsis; z-index: 10;
+  }
+
+  footer {
+    border-top: 1px solid var(--border); padding: 24px 0; margin-top: 48px;
+    text-align: center; color: var(--text-muted); font-size: 13px;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  @media (max-width: 768px) {
+    .provider-card { grid-template-columns: 36px 1fr; gap: 12px; }
+    .score-display { grid-column: 1 / -1; text-align: left; display: flex; align-items: center; gap: 8px; }
+    .score-number { font-size: 24px; }
+    .provider-metrics { gap: 12px; }
+    .chart-row { grid-template-columns: 80px 1fr 50px; }
+    .breakdown-table, .cap-matrix { display: block; overflow-x: auto; }
+    .header-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<a href="https://github.com/zkwentz/sandbox-bench" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin:130px 106px" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.2,141.5 141.2,141.5 L115.0,115.0 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<header>
+  <div class="container">
+    <a href="https://github.com/zkwentz/sandbox-bench" class="logo">
+      <div class="logo-icon">sb</div>
+      <div>
+        <h1>sandbox-bench</h1>
+        <p>AI Agent Sandbox Provider Benchmarks</p>
+      </div>
+    </a>
+    <div class="header-links">
+      <a href="https://github.com/zkwentz/sandbox-bench">GitHub</a>
+      <a href="#methodology">Methodology</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="running-banner" style="border-color: rgba(63,185,80,0.3); background: linear-gradient(90deg, rgba(63,185,80,0.1), rgba(63,185,80,0.05), rgba(63,185,80,0.1));">
+    <div style="color: var(--green); font-size: 18px;">&#10003;</div>
+    <div>
+      <strong style="color: var(--green)">Full benchmark suite complete</strong>
+      <span style="color: var(--text-muted)"> &mdash; E2B, Daytona, CodeSandbox, VMVM (3 runs each, best-of-N). Modal excluded &mdash; needs async API migration.</span>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="run-info" id="run-info"></div>
+  </div>
+
+  <!-- Suite Tabs -->
+  <div class="suite-tabs" id="suite-tabs"></div>
+
+  <!-- Score Chart -->
+  <div class="section">
+    <h2 class="section-title" id="chart-title">Scores</h2>
+    <div class="chart-container">
+      <div class="bar-chart" id="score-chart"></div>
+    </div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div class="section">
+    <h2 class="section-title" id="leaderboard-title">Leaderboard</h2>
+    <div class="leaderboard" id="leaderboard"></div>
+  </div>
+
+  <!-- Comparison Table -->
+  <div class="section">
+    <h2 class="section-title">Detailed Comparison</h2>
+    <div style="overflow-x: auto;">
+      <table class="breakdown-table" id="comparison-table">
+        <thead id="comparison-head"></thead>
+        <tbody id="comparison-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Capabilities Matrix -->
+  <div class="section" id="capabilities-section" style="display:none">
+    <h2 class="section-title">Capabilities Matrix</h2>
+    <div class="chart-container" style="overflow-x:auto">
+      <table class="cap-matrix" id="cap-matrix"></table>
+    </div>
+  </div>
+
+  <!-- Performance Metrics -->
+  <div class="section" id="performance-section" style="display:none">
+    <h2 class="section-title">Performance Metrics</h2>
+    <div class="perf-grid" id="perf-grid"></div>
+  </div>
+
+  <!-- Methodology -->
+  <div class="section" id="methodology">
+    <h2 class="section-title">Scoring Methodology</h2>
+    <div class="methodology">
+      <p style="color: var(--text-muted); margin-bottom: 16px;" id="methodology-desc">
+        Each provider is scored from 0-100 based on weighted metrics. The benchmark measures the full lifecycle
+        of an AI agent interacting with a sandbox: authenticate, create, execute code, read/write files, and destroy.
+        When extended suites are run, a Capabilities weight is added and other weights are adjusted.
+      </p>
+      <div class="weight-bars" id="weight-bars"></div>
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <p style="font-size: 13px; color: var(--text-muted);">
+          <strong style="color: var(--text);">Grades:</strong>
+          <span style="color:var(--grade-a);">A (85-100)</span> &middot;
+          <span style="color:var(--grade-b);">B (70-84)</span> &middot;
+          <span style="color:var(--grade-c);">C (55-69)</span> &middot;
+          <span style="color:var(--grade-d);">D (40-54)</span> &middot;
+          <span style="color:var(--grade-f);">F (0-39)</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="container">
+    <p>
+      <a href="https://github.com/zkwentz/sandbox-bench">sandbox-bench</a> &mdash;
+      Open source benchmarks for AI agent sandbox providers.
+      Run your own: <code style="background:var(--surface-2);padding:2px 6px;border-radius:4px;">pip install sandbox-bench && sandbox-bench run --all</code>
+    </p>
+  </div>
+</footer>
+
+<script>
+(function() {
+
+  // ── Tooltip definitions ────────────────────────────────────────────
+  const TIPS = {
+    time: { def: 'Wall-clock seconds for this specific test operation.', why: 'Lower latency means more rollouts per hour in RL training loops.' },
+    'api calls': { def: 'Number of distinct SDK/API calls required.', why: 'Fewer calls = fewer tokens spent on tool-use formatting.' },
+    tool_calls: { def: 'Number of distinct SDK/API calls required.', why: 'Fewer calls = fewer tokens spent on tool-use formatting.' },
+    friction: { def: 'Workarounds, retries, or unexpected behaviors.', why: 'High friction wastes agent actions on error recovery.' },
+    errors: { def: 'Exceptions or failures during the benchmark run.', why: 'Errors force agents into recovery paths.' },
+    cost: { def: 'Provider-specific USD cost for sandbox runtime.', why: 'Cost compounds at RL scale with thousands of parallel episodes.' },
+    'sandbox cost': { def: 'Provider-specific USD cost for sandbox runtime.', why: 'Cost compounds at RL scale with thousands of parallel episodes.' },
+    discoverability: { def: 'Quality of docs, MCP server, OpenAPI spec, llms.txt. Scored 1-5.', why: 'Better discoverability lets agents self-onboard with fewer examples.' },
+    capabilities: { def: 'Fraction of tested environment features supported.', why: 'More capabilities means handling diverse SWE-bench tasks.' },
+    score: { def: 'Weighted composite of all metrics, 0-100.', why: 'Single number to rank sandbox providers for agentic use cases.' },
+    cold_start: { def: 'Time to create a fresh sandbox from scratch.', why: 'Worst-case latency for every new RL episode.' },
+    warm_start: { def: 'Time to create when provider has cached/pre-warmed images.', why: 'Steady-state latency during high-throughput training.' },
+    warm_start_perf: { def: 'Time to create when provider has cached/pre-warmed images.', why: 'Steady-state latency during high-throughput training.' },
+    file_io_throughput: { def: 'MB/s for reading/writing files to sandbox filesystem.', why: 'Low throughput bottlenecks multi-file SWE tasks.' },
+    agent_spawn: { def: 'Time from spawning sub-agent to sandbox ready for code execution.', why: 'Determines how fast an agent can delegate and parallelize work.' },
+    stdin_piping: { def: 'Pipe data to a running process via stdin.', why: 'Required for competitive programming with stdin input.' },
+    gcc: { def: 'GCC C compiler available.', why: 'Needed for C tasks and native extensions.' },
+    gpp: { def: 'G++ C++ compiler available.', why: 'Required for C++ competitive programming.' },
+
+    python3: { def: 'Python 3 runtime available.', why: 'Baseline for most AI/ML agent tasks.' },
+    network_access: { def: 'Outbound internet from sandbox.', why: 'Required for pip install, git clone, APIs.' },
+    pip_install: { def: 'Python package installation via pip.', why: 'Essential for SWE-bench project dependencies.' },
+    git_clone: { def: 'Clone repos from GitHub.', why: 'Core for SWE-bench checkout/patch/test.' },
+    pytest: { def: 'pytest execution.', why: 'Standard for verifying SWE-bench patches.' },
+    nodejs: { def: 'Node.js runtime available.', why: 'Required for frontend/fullstack tasks.' },
+    npm: { def: 'npm package manager.', why: 'Needed for JS/TS project dependencies.' },
+    project_clone: { def: 'Clone and work with real repos.', why: 'Tests real codebase handling beyond toy examples.' },
+    multi_step_build: { def: 'Multi-step build pipeline.', why: 'Tests full dev workflow orchestration.' },
+    python_venv: { def: 'Python venv creation and use.', why: 'Important for isolating project dependencies.' },
+  };
+
+  function tip(key, label) {
+    const t = TIPS[key] || TIPS[label.toLowerCase().replace(/ /g, '_')];
+    if (!t) return label;
+    return `<span class="tip">${label}<span class="tip-bubble"><div class="tip-title">${label}</div>${t.def}<div class="tip-why"><strong>Why it matters:</strong> ${t.why}</div></span></span>`;
+  }
+
+  // Tooltip positioning
+  document.addEventListener('mouseover', function(e) {
+    const tipEl = e.target.closest('.tip');
+    if (!tipEl) return;
+    const bubble = tipEl.querySelector('.tip-bubble');
+    if (!bubble) return;
+    const rect = tipEl.getBoundingClientRect();
+    bubble.classList.add('visible');
+    const bubbleRect = bubble.getBoundingClientRect();
+    let top = rect.top - bubbleRect.height - 8;
+    let left = rect.left + rect.width / 2 - bubbleRect.width / 2;
+    if (top < 8) top = rect.bottom + 8;
+    if (left < 8) left = 8;
+    if (left + bubbleRect.width > window.innerWidth - 8) left = window.innerWidth - bubbleRect.width - 8;
+    bubble.style.top = top + 'px';
+    bubble.style.left = left + 'px';
+  });
+  document.addEventListener('mouseout', function(e) {
+    const tipEl = e.target.closest('.tip');
+    if (!tipEl) return;
+    const bubble = tipEl.querySelector('.tip-bubble');
+    if (bubble) bubble.classList.remove('visible');
+  });
+
+  // ── Utilities ──────────────────────────────────────────────────────
+  function formatTime(s) {
+    if (s < 0.001) return '<1ms';
+    if (s < 1) return Math.round(s * 1000) + 'ms';
+    if (s < 60) return s.toFixed(2) + 's';
+    return Math.floor(s/60) + 'm ' + Math.round(s%60) + 's';
+  }
+  function suiteScore(r, suite) {
+    const tests = r.suite_results && r.suite_results[suite];
+    if (!tests || tests.length === 0) return null;
+    const passed = tests.filter(t => t.success).length;
+    const total = tests.length;
+    const passRate = passed / total;
+    const friction = tests.reduce((s,t) => s + (t.friction_points||0), 0);
+    // Score: 80% pass rate + 20% friction-free bonus
+    return Math.round(passRate * 80 + Math.max(0, 20 - friction * 5));
+  }
+  function suiteGrade(score) {
+    if (score == null) return '?';
+    if (score >= 85) return 'A';
+    if (score >= 70) return 'B';
+    if (score >= 55) return 'C';
+    if (score >= 40) return 'D';
+    return 'F';
+  }
+  function overallScore(r) {
+    const scores = INDIVIDUAL_SUITES.map(s => suiteScore(r, s)).filter(s => s != null);
+    if (scores.length === 0) return null;
+    return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+  }
+  function providerScore(r, suite) {
+    return suite === 'overall' ? overallScore(r) : suiteScore(r, suite);
+  }
+  function formatMs(ms) {
+    if (ms < 1) return '<1ms';
+    if (ms < 1000) return Math.round(ms) + 'ms';
+    return (ms / 1000).toFixed(2) + 's';
+  }
+  function gradeColor(g) {
+    return { A:'#3fb950', B:'#58a6ff', C:'#d29922', D:'#db6d28', F:'#f85149' }[g] || '#8b949e';
+  }
+  function getCost(r) {
+    const c = r.sandbox_cost_usd !== undefined ? r.sandbox_cost_usd : r.estimated_cost_usd;
+    return c < 0.01 ? '$' + c.toFixed(4) : '$' + c.toFixed(2);
+  }
+
+  // ── Data ───────────────────────────────────────────────────────────
+  const DATA = {"config":{"providers":["e2b","daytona","codesandbox","vmvm"],"suites":["full"],"agent_mode":false,"model":"claude-opus-4","runs":3},"results":[{"provider":"e2b","success":true,"total_time_seconds":32.87,"tool_calls":41,"friction_points":0,"errors":0,"error_messages":[],"estimated_cost_usd":0.003287,"sandbox_cost_usd":0.003287,"discoverability_score":4.5,"score":88.1,"grade":"A","trace":[{"timestamp":0,"action":"authenticate","duration_ms":1.01,"success":true,"details":{}},{"timestamp":0,"action":"create_sandbox","duration_ms":150.89,"success":true,"details":{}},{"timestamp":0,"action":"basic/execute_hello","duration_ms":438.28,"success":true,"details":{}},{"timestamp":0,"action":"basic/file_io","duration_ms":169.96,"success":true,"details":{}},{"timestamp":0,"action":"competitive/stdin_piping","duration_ms":93.64,"success":true,"details":{}},{"timestamp":0,"action":"competitive/gcc_compilation","duration_ms":446.52,"success":true,"details":{}},{"timestamp":0,"action":"competitive/cpp_compilation","duration_ms":708.0,"success":true,"details":{}},{"timestamp":0,"action":"competitive/python_version","duration_ms":83.35,"success":true,"details":{}},{"timestamp":0,"action":"swe/network_access","duration_ms":637.13,"success":true,"details":{}},{"timestamp":0,"action":"swe/pip_install","duration_ms":2646.49,"success":true,"details":{}},{"timestamp":0,"action":"swe/git_clone","duration_ms":979.15,"success":true,"details":{}},{"timestamp":0,"action":"swe/pytest_run","duration_ms":2196.26,"success":true,"details":{}},{"timestamp":0,"action":"environment/node_available","duration_ms":176.32,"success":true,"details":{}},{"timestamp":0,"action":"environment/npm_install","duration_ms":2593.21,"success":true,"details":{}},{"timestamp":0,"action":"environment/project_clone","duration_ms":701.46,"success":true,"details":{}},{"timestamp":0,"action":"environment/multi_step_build","duration_ms":11698.57,"success":true,"details":{}},{"timestamp":0,"action":"environment/python_venv","duration_ms":4589.91,"success":true,"details":{}},{"timestamp":0,"action":"performance/agent_spawn","duration_ms":300.43,"success":true,"details":{"agent_spawn_seconds":0.3004}},{"timestamp":0,"action":"performance/warm_start","duration_ms":164.92,"success":true,"details":{"warm_start_seconds":0.16492295265197754}},{"timestamp":0,"action":"performance/file_io_1mb_write","duration_ms":454.14,"success":true,"details":{"throughput_mbps":2.2}},{"timestamp":0,"action":"performance/file_io_1mb_read","duration_ms":396.57,"success":true,"details":{"throughput_mbps":2.52}},{"timestamp":0,"action":"performance/file_io_10mb","duration_ms":1954.75,"success":true,"details":{"write_mbps":8.56,"read_mbps":12.76}},{"timestamp":0,"action":"performance/rapid_exec","duration_ms":843.97,"success":true,"details":{"avg_latency_ms":84.4}},{"timestamp":0,"action":"destroy","duration_ms":144.12,"success":true,"details":{}}],"suites_run":["basic","competitive","swe","environment","performance"],"suite_results":{"basic":[{"name":"execute_hello","success":true,"duration_seconds":0.438,"tool_calls":1,"friction_points":0,"errors":0},{"name":"file_io","success":true,"duration_seconds":0.17,"tool_calls":2,"friction_points":0,"errors":0}],"competitive":[{"name":"stdin_piping","success":true,"duration_seconds":0.094,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"stdin_piping","capability_supported":true},{"name":"gcc_compilation","success":true,"duration_seconds":0.447,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"gcc","capability_supported":true},{"name":"cpp_compilation","success":true,"duration_seconds":0.708,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"gpp","capability_supported":true},{"name":"python_version","success":true,"duration_seconds":0.083,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"python3","capability_supported":true}],"swe":[{"name":"network_access","success":true,"duration_seconds":0.637,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"network_access","capability_supported":true},{"name":"pip_install","success":true,"duration_seconds":2.646,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"pip_install","capability_supported":true},{"name":"git_clone","success":true,"duration_seconds":0.979,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"git_clone","capability_supported":true},{"name":"pytest_run","success":true,"duration_seconds":2.196,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"pytest","capability_supported":true}],"environment":[{"name":"node_available","success":true,"duration_seconds":0.176,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"nodejs","capability_supported":true},{"name":"npm_install","success":true,"duration_seconds":2.593,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"npm","capability_supported":true},{"name":"project_clone","success":true,"duration_seconds":0.701,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"project_clone","capability_supported":true},{"name":"multi_step_build","success":true,"duration_seconds":11.699,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"multi_step_build","capability_supported":true},{"name":"python_venv","success":true,"duration_seconds":4.59,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"python_venv","capability_supported":true}],"performance":[{"name":"agent_spawn","success":true,"duration_seconds":0.3,"tool_calls":3,"friction_points":0,"errors":0,"capability_tested":"agent_spawn","capability_supported":true},{"name":"warm_start","success":true,"duration_seconds":0.165,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"warm_start","capability_supported":true},{"name":"file_io_1mb_write","success":true,"duration_seconds":0.454,"tool_calls":1,"friction_points":0,"errors":0},{"name":"file_io_1mb_read","success":true,"duration_seconds":0.397,"tool_calls":1,"friction_points":0,"errors":0},{"name":"file_io_10mb","success":true,"duration_seconds":1.955,"tool_calls":2,"friction_points":0,"errors":0},{"name":"rapid_exec","success":true,"duration_seconds":0.844,"tool_calls":10,"friction_points":0,"errors":0}]},"capabilities":{"stdin_piping":true,"gcc":true,"gpp":true,"python3":true,"network_access":true,"pip_install":true,"git_clone":true,"pytest":true,"nodejs":true,"npm":true,"project_clone":true,"multi_step_build":true,"python_venv":true,"agent_spawn":true,"warm_start":true},"capability_score":1.0,"cold_start_seconds":0.151,"warm_start_seconds":0.165,"agent_spawn_seconds":0.3004,"file_io_throughput_mbps":2.2},{"provider":"daytona","success":true,"total_time_seconds":29.75,"tool_calls":27,"friction_points":5,"errors":5,"error_messages":["Failed to upload files: Client error '400 Bad Request' for url 'https://proxy.app.daytona.io/toolbox/72bf0bd2-4152-4208-a131-dd295207eacd/files/bulk-upload' For more information check: https://develop","Failed to download file: Failed to download files: Client error '404 Not Found' for url 'https://proxy.app.daytona.io/toolbox/72bf0bd2-4152-4208-a131-dd295207eacd/files/bulk-download' For more informa","Failed to upload files: Client error '404 Not Found' for url 'https://proxy.app.daytona.io/toolbox/72bf0bd2-4152-4208-a131-dd295207eacd/files/bulk-upload' For more information check: https://developer"],"estimated_cost_usd":0.004462,"sandbox_cost_usd":0.004462,"discoverability_score":3.5,"score":63.4,"grade":"C","trace":[{"timestamp":0,"action":"authenticate","duration_ms":9.52,"success":true,"details":{}},{"timestamp":0,"action":"create_sandbox","duration_ms":149.98,"success":true,"details":{}},{"timestamp":0,"action":"basic/execute_hello","duration_ms":204.81,"success":true,"details":{}},{"timestamp":0,"action":"basic/file_io","duration_ms":179.41,"success":true,"details":{}},{"timestamp":0,"action":"competitive/stdin_piping","duration_ms":79.67,"success":true,"details":{}},{"timestamp":0,"action":"competitive/gcc_compilation","duration_ms":222.52,"success":true,"details":{}},{"timestamp":0,"action":"competitive/cpp_compilation","duration_ms":429.94,"success":true,"details":{}},{"timestamp":0,"action":"competitive/python_version","duration_ms":38.03,"success":true,"details":{}},{"timestamp":0,"action":"swe/network_access","duration_ms":90.36,"success":false,"details":{}},{"timestamp":0,"action":"swe/pip_install","duration_ms":863.07,"success":true,"details":{}},{"timestamp":0,"action":"swe/git_clone","duration_ms":303.71,"success":true,"details":{}},{"timestamp":0,"action":"swe/pytest_run","duration_ms":2288.73,"success":true,"details":{}},{"timestamp":0,"action":"environment/node_available","duration_ms":47.96,"success":true,"details":{}},{"timestamp":0,"action":"environment/npm_install","duration_ms":4039.62,"success":true,"details":{}},{"timestamp":0,"action":"environment/project_clone","duration_ms":314.13,"success":true,"details":{}},{"timestamp":0,"action":"environment/multi_step_build","duration_ms":15973.74,"success":true,"details":{}},{"timestamp":0,"action":"environment/python_venv","duration_ms":2746.33,"success":true,"details":{}},{"timestamp":0,"action":"performance/agent_spawn","duration_ms":188.78,"success":true,"details":{"agent_spawn_seconds":0.1888}},{"timestamp":0,"action":"performance/warm_start","duration_ms":91.59,"success":true,"details":{"warm_start_seconds":0.09159302711486816}},{"timestamp":0,"action":"performance/file_io_1mb_write","duration_ms":713.34,"success":false,"details":{}},{"timestamp":0,"action":"performance/file_io_1mb_read","duration_ms":80.59,"success":false,"details":{}},{"timestamp":0,"action":"performance/file_io_10mb","duration_ms":416.73,"success":false,"details":{}},{"timestamp":0,"action":"performance/rapid_exec","duration_ms":37.47,"success":false,"details":{}},{"timestamp":0,"action":"destroy","duration_ms":36.74,"success":false,"details":{}}],"suites_run":["basic","competitive","swe","environment","performance"],"suite_results":{"basic":[{"name":"execute_hello","success":true,"duration_seconds":0.205,"tool_calls":1,"friction_points":0,"errors":0},{"name":"file_io","success":true,"duration_seconds":0.179,"tool_calls":2,"friction_points":0,"errors":0}],"competitive":[{"name":"stdin_piping","success":true,"duration_seconds":0.08,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"stdin_piping","capability_supported":true},{"name":"gcc_compilation","success":true,"duration_seconds":0.223,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"gcc","capability_supported":true},{"name":"cpp_compilation","success":true,"duration_seconds":0.43,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"gpp","capability_supported":true},{"name":"python_version","success":true,"duration_seconds":0.038,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"python3","capability_supported":true}],"swe":[{"name":"network_access","success":false,"duration_seconds":0.09,"tool_calls":1,"friction_points":1,"errors":0,"capability_tested":"network_access","capability_supported":false},{"name":"pip_install","success":true,"duration_seconds":0.863,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"pip_install","capability_supported":true},{"name":"git_clone","success":true,"duration_seconds":0.304,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"git_clone","capability_supported":true},{"name":"pytest_run","success":true,"duration_seconds":2.289,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"pytest","capability_supported":true}],"environment":[{"name":"node_available","success":true,"duration_seconds":0.048,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"nodejs","capability_supported":true},{"name":"npm_install","success":true,"duration_seconds":4.04,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"npm","capability_supported":true},{"name":"project_clone","success":true,"duration_seconds":0.314,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"project_clone","capability_supported":true},{"name":"multi_step_build","success":true,"duration_seconds":15.974,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"multi_step_build","capability_supported":true},{"name":"python_venv","success":true,"duration_seconds":2.746,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"python_venv","capability_supported":true}],"performance":[{"name":"agent_spawn","success":true,"duration_seconds":0.189,"tool_calls":3,"friction_points":0,"errors":0,"capability_tested":"agent_spawn","capability_supported":true},{"name":"warm_start","success":true,"duration_seconds":0.092,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"warm_start","capability_supported":true},{"name":"file_io_1mb_write","success":false,"duration_seconds":0.713,"tool_calls":1,"friction_points":1,"errors":0},{"name":"file_io_1mb_read","success":false,"duration_seconds":0.081,"tool_calls":1,"friction_points":1,"errors":0},{"name":"file_io_10mb","success":false,"duration_seconds":0.417,"tool_calls":2,"friction_points":1,"errors":0},{"name":"rapid_exec","success":false,"duration_seconds":0.037,"tool_calls":1,"friction_points":1,"errors":0}]},"capabilities":{"stdin_piping":true,"gcc":true,"gpp":true,"python3":true,"network_access":false,"pip_install":true,"git_clone":true,"pytest":true,"nodejs":true,"npm":true,"project_clone":true,"multi_step_build":true,"python_venv":true,"agent_spawn":true,"warm_start":true},"capability_score":0.9333,"cold_start_seconds":0.15,"warm_start_seconds":0.092,"agent_spawn_seconds":0.1888,"file_io_throughput_mbps":null},{"provider":"codesandbox","success":true,"total_time_seconds":49.22,"tool_calls":32,"friction_points":6,"errors":5,"error_messages":["Cannot send a request, as the client has been closed.","sent 1000 (OK); then received 1000 (OK)","sent 1000 (OK); then received 1000 (OK)"],"estimated_cost_usd":0.013683,"sandbox_cost_usd":0.013683,"discoverability_score":3.5,"score":60.1,"grade":"C","trace":[{"timestamp":0,"action":"authenticate","duration_ms":191.57,"success":true,"details":{}},{"timestamp":0,"action":"create_sandbox","duration_ms":1992.07,"success":true,"details":{}},{"timestamp":0,"action":"basic/execute_hello","duration_ms":394.63,"success":true,"details":{}},{"timestamp":0,"action":"basic/file_io","duration_ms":130.44,"success":true,"details":{}},{"timestamp":0,"action":"competitive/stdin_piping","duration_ms":125.34,"success":true,"details":{}},{"timestamp":0,"action":"competitive/gcc_compilation","duration_ms":410.7,"success":true,"details":{}},{"timestamp":0,"action":"competitive/cpp_compilation","duration_ms":524.96,"success":true,"details":{}},{"timestamp":0,"action":"competitive/python_version","duration_ms":109.9,"success":true,"details":{}},{"timestamp":0,"action":"swe/network_access","duration_ms":518.38,"success":true,"details":{}},{"timestamp":0,"action":"swe/pip_install","duration_ms":1470.43,"success":true,"details":{}},{"timestamp":0,"action":"swe/git_clone","duration_ms":820.61,"success":true,"details":{}},{"timestamp":0,"action":"swe/pytest_run","duration_ms":2114.31,"success":true,"details":{}},{"timestamp":0,"action":"environment/node_available","duration_ms":317.07,"success":false,"details":{}},{"timestamp":0,"action":"environment/npm_install","duration_ms":3637.81,"success":true,"details":{}},{"timestamp":0,"action":"environment/project_clone","duration_ms":521.06,"success":true,"details":{}},{"timestamp":0,"action":"environment/multi_step_build","duration_ms":13684.55,"success":true,"details":{}},{"timestamp":0,"action":"environment/python_venv","duration_ms":3804.72,"success":true,"details":{}},{"timestamp":0,"action":"performance/agent_spawn","duration_ms":2160.2,"success":true,"details":{"agent_spawn_seconds":2.1602}},{"timestamp":0,"action":"performance/warm_start","duration_ms":1.43,"success":false,"details":{}},{"timestamp":0,"action":"performance/file_io_1mb_write","duration_ms":1.67,"success":false,"details":{}},{"timestamp":0,"action":"performance/file_io_1mb_read","duration_ms":0.03,"success":false,"details":{}},{"timestamp":0,"action":"performance/file_io_10mb","duration_ms":13.03,"success":false,"details":{}},{"timestamp":0,"action":"performance/rapid_exec","duration_ms":0.13,"success":false,"details":{}},{"timestamp":0,"action":"destroy","duration_ms":1.04,"success":true,"details":{}}],"suites_run":["basic","competitive","swe","environment","performance"],"suite_results":{"basic":[{"name":"execute_hello","success":true,"duration_seconds":0.395,"tool_calls":1,"friction_points":0,"errors":0},{"name":"file_io","success":true,"duration_seconds":0.13,"tool_calls":2,"friction_points":0,"errors":0}],"competitive":[{"name":"stdin_piping","success":true,"duration_seconds":0.125,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"stdin_piping","capability_supported":true},{"name":"gcc_compilation","success":true,"duration_seconds":0.411,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"gcc","capability_supported":true},{"name":"cpp_compilation","success":true,"duration_seconds":0.525,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"gpp","capability_supported":true},{"name":"python_version","success":true,"duration_seconds":0.11,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"python3","capability_supported":true}],"swe":[{"name":"network_access","success":true,"duration_seconds":0.518,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"network_access","capability_supported":true},{"name":"pip_install","success":true,"duration_seconds":1.47,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"pip_install","capability_supported":true},{"name":"git_clone","success":true,"duration_seconds":0.821,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"git_clone","capability_supported":true},{"name":"pytest_run","success":true,"duration_seconds":2.114,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"pytest","capability_supported":true}],"environment":[{"name":"node_available","success":false,"duration_seconds":0.317,"tool_calls":1,"friction_points":1,"errors":0,"capability_tested":"nodejs","capability_supported":false},{"name":"npm_install","success":true,"duration_seconds":3.638,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"npm","capability_supported":true},{"name":"project_clone","success":true,"duration_seconds":0.521,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"project_clone","capability_supported":true},{"name":"multi_step_build","success":true,"duration_seconds":13.685,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"multi_step_build","capability_supported":true},{"name":"python_venv","success":true,"duration_seconds":3.805,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"python_venv","capability_supported":true}],"performance":[{"name":"agent_spawn","success":true,"duration_seconds":2.16,"tool_calls":3,"friction_points":0,"errors":0,"capability_tested":"agent_spawn","capability_supported":true},{"name":"warm_start","success":false,"duration_seconds":0.001,"tool_calls":1,"friction_points":1,"errors":0,"capability_tested":"warm_start","capability_supported":false},{"name":"file_io_1mb_write","success":false,"duration_seconds":0.002,"tool_calls":1,"friction_points":1,"errors":0},{"name":"file_io_1mb_read","success":false,"duration_seconds":0.0,"tool_calls":1,"friction_points":1,"errors":0},{"name":"file_io_10mb","success":false,"duration_seconds":0.013,"tool_calls":2,"friction_points":1,"errors":0},{"name":"rapid_exec","success":false,"duration_seconds":0.0,"tool_calls":1,"friction_points":1,"errors":0}]},"capabilities":{"stdin_piping":true,"gcc":true,"gpp":true,"python3":true,"network_access":true,"pip_install":true,"git_clone":true,"pytest":true,"nodejs":false,"npm":true,"project_clone":true,"multi_step_build":true,"python_venv":true,"agent_spawn":true,"warm_start":false},"capability_score":0.8667,"cold_start_seconds":1.992,"warm_start_seconds":null,"agent_spawn_seconds":2.1602,"file_io_throughput_mbps":null},{"provider":"vmvm","success":true,"total_time_seconds":0,"tool_calls":64,"friction_points":4,"errors":0,"error_messages":[],"estimated_cost_usd":0,"sandbox_cost_usd":0,"discoverability_score":3.5,"score":71.2,"grade":"B","trace":[{"timestamp":0,"action":"authenticate","duration_ms":228.58,"success":true,"details":{}},{"timestamp":0,"action":"create_sandbox","duration_ms":881.88,"success":true,"details":{}},{"timestamp":0,"action":"basic/execute_hello","duration_ms":167.98,"success":true,"details":{}},{"timestamp":0,"action":"basic/file_io","duration_ms":666.01,"success":true,"details":{}},{"timestamp":0,"action":"performance/agent_spawn","duration_ms":714.87,"success":true,"details":{"agent_spawn_seconds":0.7149}},{"timestamp":0,"action":"performance/warm_start","duration_ms":873.83,"success":true,"details":{"warm_start_seconds":0.8738284111022949}},{"timestamp":0,"action":"performance/file_io_1mb_write","duration_ms":2825.62,"success":true,"details":{"throughput_mbps":0.35}},{"timestamp":0,"action":"performance/file_io_1mb_read","duration_ms":10935.35,"success":true,"details":{"throughput_mbps":0.09}},{"timestamp":0,"action":"performance/file_io_10mb","duration_ms":131951.28,"success":true,"details":{"write_mbps":0.4,"read_mbps":0.09}},{"timestamp":0,"action":"performance/rapid_exec","duration_ms":1275.49,"success":true,"details":{"avg_latency_ms":127.5}},{"timestamp":0,"action":"competitive/stdin_piping","duration_ms":123.43,"success":true,"details":{}},{"timestamp":0,"action":"competitive/gcc_compilation","duration_ms":468.28,"success":true,"details":{}},{"timestamp":0,"action":"competitive/cpp_compilation","duration_ms":767.25,"success":true,"details":{}},{"timestamp":0,"action":"competitive/python_version","duration_ms":123.48,"success":true,"details":{}},{"timestamp":0,"action":"swe/network_access","duration_ms":494.81,"success":true,"details":{}},{"timestamp":0,"action":"swe/pip_install","duration_ms":121.96,"success":false,"details":{}},{"timestamp":0,"action":"swe/git_clone","duration_ms":620.99,"success":true,"details":{}},{"timestamp":0,"action":"swe/pytest_run","duration_ms":377.12,"success":false,"details":{}},{"timestamp":0,"action":"environment/node_available","duration_ms":136.95,"success":false,"details":{}},{"timestamp":0,"action":"environment/npm_install","duration_ms":492.89,"success":false,"details":{}},{"timestamp":0,"action":"environment/project_clone","duration_ms":1458.78,"success":true,"details":{}},{"timestamp":0,"action":"environment/multi_step_build","duration_ms":132.07,"success":true,"details":{}},{"timestamp":0,"action":"environment/python_venv","duration_ms":4126.58,"success":true,"details":{}},{"timestamp":0,"action":"destroy","duration_ms":264.1,"success":true,"details":{}}],"suites_run":["basic","competitive","swe","environment","performance"],"suite_results":{"basic":[{"name":"execute_hello","success":true,"duration_seconds":0.168,"tool_calls":1,"friction_points":0,"errors":0},{"name":"file_io","success":true,"duration_seconds":0.666,"tool_calls":2,"friction_points":0,"errors":0}],"performance":[{"name":"agent_spawn","success":true,"duration_seconds":0.715,"tool_calls":3,"friction_points":0,"errors":0,"capability_tested":"agent_spawn","capability_supported":true},{"name":"warm_start","success":true,"duration_seconds":0.874,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"warm_start","capability_supported":true},{"name":"file_io_1mb_write","success":true,"duration_seconds":2.826,"tool_calls":1,"friction_points":0,"errors":0},{"name":"file_io_1mb_read","success":true,"duration_seconds":10.935,"tool_calls":1,"friction_points":0,"errors":0},{"name":"file_io_10mb","success":true,"duration_seconds":131.951,"tool_calls":2,"friction_points":0,"errors":0},{"name":"rapid_exec","success":true,"duration_seconds":1.275,"tool_calls":10,"friction_points":0,"errors":0}],"competitive":[{"name":"stdin_piping","success":true,"duration_seconds":0.123,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"stdin_piping","capability_supported":true},{"name":"gcc_compilation","success":true,"duration_seconds":0.468,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"gcc","capability_supported":true},{"name":"cpp_compilation","success":true,"duration_seconds":0.767,"tool_calls":2,"friction_points":0,"errors":0,"capability_tested":"gpp","capability_supported":true},{"name":"python_version","success":true,"duration_seconds":0.123,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"python3","capability_supported":true}],"swe":[{"name":"network_access","success":true,"duration_seconds":0.495,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"network_access","capability_supported":true},{"name":"pip_install","success":false,"duration_seconds":0.122,"tool_calls":1,"friction_points":1,"errors":0,"capability_tested":"pip_install","capability_supported":false},{"name":"git_clone","success":true,"duration_seconds":0.621,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"git_clone","capability_supported":true},{"name":"pytest_run","success":false,"duration_seconds":0.377,"tool_calls":2,"friction_points":1,"errors":0,"capability_tested":"pytest","capability_supported":false}],"environment":[{"name":"node_available","success":false,"duration_seconds":0.137,"tool_calls":1,"friction_points":1,"errors":0,"capability_tested":"nodejs","capability_supported":false},{"name":"npm_install","success":false,"duration_seconds":0.493,"tool_calls":2,"friction_points":1,"errors":0,"capability_tested":"npm","capability_supported":false},{"name":"project_clone","success":true,"duration_seconds":1.459,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"project_clone","capability_supported":true},{"name":"multi_step_build","success":true,"duration_seconds":0.132,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"multi_step_build","capability_supported":true},{"name":"python_venv","success":true,"duration_seconds":4.127,"tool_calls":1,"friction_points":0,"errors":0,"capability_tested":"python_venv","capability_supported":true}]},"capabilities":{"agent_spawn":true,"warm_start":true,"stdin_piping":true,"gcc":true,"gpp":true,"python3":true,"network_access":true,"pip_install":false,"git_clone":true,"pytest":false,"nodejs":false,"npm":false,"project_clone":true,"multi_step_build":true,"python_venv":true},"capability_score":0.7333,"cold_start_seconds":0.882,"warm_start_seconds":0.874,"agent_spawn_seconds":0.7149,"file_io_throughput_mbps":0.35}]};
+
+  const SUITES = ['overall', 'performance', 'basic', 'competitive', 'swe', 'environment'];
+  const SUITE_LABELS = { overall: 'Overall', performance: 'Performance', basic: 'Basic', competitive: 'Competitive', swe: 'SWE', environment: 'Environment' };
+  const INDIVIDUAL_SUITES = ['basic', 'competitive', 'swe', 'environment', 'performance'];
+  let activeSuite = 'overall';
+
+  // ── Which providers have data for a suite ─────────────────────────
+  function providersForSuite(suite) {
+    if (suite === 'overall') return DATA.results.filter(r => r.success);
+    return DATA.results.filter(r => r.success && r.suite_results && r.suite_results[suite]);
+  }
+  function providersPendingForSuite(suite) {
+    if (suite === 'overall') return [];
+    return DATA.results.filter(r => r.success && (!r.suite_results || !r.suite_results[suite]));
+  }
+
+  // ── Render tabs ────────────────────────────────────────────────────
+  function renderTabs() {
+    const container = document.getElementById('suite-tabs');
+    container.innerHTML = SUITES.map(s => {
+      const have = providersForSuite(s).length;
+      const pending = providersPendingForSuite(s).length;
+      const isOverall = s === 'overall';
+      return `<button class="suite-tab ${s === activeSuite ? 'active' : ''}" onclick="switchSuite('${s}')"${isOverall ? ' style="font-weight:700"' : ''}>
+        ${SUITE_LABELS[s]}
+        ${!isOverall ? '<span class="tab-count">' + have + '</span>' : ''}
+        ${pending > 0 ? '<span class="suite-tab-pending">+' + pending + ' pending</span>' : ''}
+      </button>`;
+    }).join('');
+  }
+
+  window.switchSuite = function(suite) {
+    activeSuite = suite;
+    renderTabs();
+    renderScoreChart();
+    renderLeaderboard();
+    renderComparison();
+  };
+
+  // ── Score chart ────────────────────────────────────────────────────
+  function renderScoreChart() {
+    const container = document.getElementById('score-chart');
+    document.getElementById('chart-title').textContent = SUITE_LABELS[activeSuite] + ' Suite Scores';
+
+    const have = providersForSuite(activeSuite);
+    const pending = providersPendingForSuite(activeSuite);
+    const scored = have.map(r => ({ r, ss: providerScore(r, activeSuite) })).sort((a, b) => (b.ss||0) - (a.ss||0));
+
+    let html = scored.map(({ r, ss }) => {
+      const g = suiteGrade(ss);
+      return `
+      <div class="chart-row">
+        <div class="chart-provider">${r.provider}</div>
+        <div class="chart-bar-container">
+          <div class="chart-bar grade-${g}" style="width: ${ss||0}%"></div>
+        </div>
+        <div class="chart-score" style="color: ${gradeColor(g)}">${ss != null ? ss : '-'}</div>
+      </div>`;
+    }).join('');
+
+    html += pending.map(r => `
+      <div class="chart-row">
+        <div class="chart-provider" style="color:var(--text-muted)">${r.provider}</div>
+        <div class="chart-bar-container">
+          <div class="chart-bar pending" style="width: 100%"></div>
+        </div>
+        <div class="chart-score" style="color:var(--yellow)">...</div>
+      </div>
+    `).join('');
+
+    container.innerHTML = html;
+  }
+
+  // ── Leaderboard ────────────────────────────────────────────────────
+  function renderLeaderboard() {
+    const container = document.getElementById('leaderboard');
+    const isOverall = activeSuite === 'overall';
+    document.getElementById('leaderboard-title').textContent = isOverall ? 'Overall Leaderboard' : SUITE_LABELS[activeSuite] + ' Suite Leaderboard';
+
+    const have = providersForSuite(activeSuite);
+    const pending = providersPendingForSuite(activeSuite);
+    const scored = have.map(r => ({ r, ss: providerScore(r, activeSuite) })).sort((a, b) => (b.ss||0) - (a.ss||0));
+
+    let rank = 1;
+    let html = scored.map(({ r, ss }) => {
+      const g = suiteGrade(ss);
+
+      if (isOverall) {
+        // Overall view: show per-suite breakdown
+        const allTests = INDIVIDUAL_SUITES.flatMap(s => (r.suite_results && r.suite_results[s]) || []);
+        const totalPassed = allTests.filter(t => t.success).length;
+        const totalTests = allTests.length;
+        const totalFriction = allTests.reduce((s,t) => s + (t.friction_points||0), 0);
+
+        const suiteBreakdown = INDIVIDUAL_SUITES.map(s => {
+          const sc = suiteScore(r, s);
+          const sg = suiteGrade(sc);
+          const tests = (r.suite_results && r.suite_results[s]) || [];
+          const p = tests.filter(t => t.success).length;
+          const t = tests.length;
+          if (t === 0) return `<div class="suite-breakdown-item" style="opacity:0.3"><span class="suite-breakdown-label">${SUITE_LABELS[s]}</span><span class="suite-breakdown-score">-</span></div>`;
+          return `<div class="suite-breakdown-item" onclick="event.stopPropagation(); switchSuite('${s}');" style="cursor:pointer">
+            <span class="suite-breakdown-label">${SUITE_LABELS[s]}</span>
+            <span class="suite-breakdown-score" style="color:${gradeColor(sg)}">${sc} <span style="font-size:11px">${sg}</span></span>
+            <span class="suite-breakdown-tests" style="color:var(--text-muted);font-size:11px">${p}/${t}</span>
+          </div>`;
+        }).join('');
+
+        return `
+        <div class="provider-card">
+          <div class="rank">#${rank++}</div>
+          <div class="provider-info">
+            <div class="provider-name-row">
+              <span class="provider-name">${r.provider}</span>
+              <span class="grade-badge grade-${g}">${g}</span>
+            </div>
+            <div class="provider-metrics">
+              <div class="metric">
+                <span class="metric-label">Tests</span>
+                <span class="metric-value ${totalPassed === totalTests ? 'status-pass' : ''}">${totalPassed}/${totalTests}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">${tip('friction', 'Friction')}</span>
+                <span class="metric-value">${totalFriction}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">${tip('cold_start', 'Cold Start')}</span>
+                <span class="metric-value">${r.cold_start_seconds ? formatTime(r.cold_start_seconds) : '-'}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">${tip('cost', 'Cost')}</span>
+                <span class="metric-value">${getCost(r)}</span>
+              </div>
+            </div>
+            <div class="suite-tests">
+              <div class="suite-tests-title">Suite Scores</div>
+              <div class="suite-breakdown">${suiteBreakdown}</div>
+            </div>
+          </div>
+          <div class="score-display">
+            <div class="score-number" style="color: ${gradeColor(g)}">${ss}</div>
+            <div class="score-label">overall</div>
+          </div>
+        </div>`;
+      }
+
+      // Individual suite view
+      const tests = (r.suite_results && r.suite_results[activeSuite]) || [];
+      const passed = tests.filter(t => t.success).length;
+      const total = tests.length;
+      const suiteCallsSum = tests.reduce((s,t) => s + (t.tool_calls||0), 0);
+      const suiteFriction = tests.reduce((s,t) => s + (t.friction_points||0), 0);
+
+      return `
+        <div class="provider-card" onclick="toggleTrace('trace-${r.provider}')">
+          <div class="rank">#${rank++}</div>
+          <div class="provider-info">
+            <div class="provider-name-row">
+              <span class="provider-name">${r.provider}</span>
+              <span class="grade-badge grade-${g}">${g}</span>
+            </div>
+            <div class="provider-metrics">
+              <div class="metric">
+                <span class="metric-label">Tests</span>
+                <span class="metric-value ${passed === total ? 'status-pass' : ''}">${passed}/${total}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">${tip('tool_calls', 'API Calls')}</span>
+                <span class="metric-value">${suiteCallsSum}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">${tip('friction', 'Friction')}</span>
+                <span class="metric-value">${suiteFriction}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">${tip('cold_start', 'Cold Start')}</span>
+                <span class="metric-value">${r.cold_start_seconds ? formatTime(r.cold_start_seconds) : '-'}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">${tip('cost', 'Cost')}</span>
+                <span class="metric-value">${getCost(r)}</span>
+              </div>
+            </div>
+            <div class="suite-tests">
+              <div class="suite-tests-title">Test Results</div>
+              <div class="test-results">
+                ${tests.map(t => `<span class="test-chip ${t.success ? 'pass' : 'fail'}">
+                  ${t.success ? 'Pass' : 'Fail'} ${t.name.replace(/_/g, ' ')}
+                  <span class="test-time">${formatTime(t.duration_seconds)}</span>
+                </span>`).join('')}
+              </div>
+            </div>
+            ${renderSuiteTrace(r, activeSuite)}
+          </div>
+          <div class="score-display">
+            <div class="score-number" style="color: ${gradeColor(g)}">${ss}</div>
+            <div class="score-label">${tip('score', 'suite score')}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Pending providers
+    html += pending.map(r => `
+      <div class="provider-card pending-card">
+        <div class="rank" style="color: var(--text-muted)">&mdash;</div>
+        <div class="provider-info">
+          <div class="provider-name-row">
+            <span class="provider-name">${r.provider}</span>
+            <span class="grade-badge grade-pending">?</span>
+            <span style="font-size:12px; color:var(--yellow)">full suite running...</span>
+          </div>
+        </div>
+        <div class="score-display">
+          <div class="score-number" style="color: var(--yellow)">...</div>
+          <div class="score-label">pending</div>
+        </div>
+      </div>
+    `).join('');
+
+    container.innerHTML = html;
+  }
+
+  function renderSuiteTrace(r, suite) {
+    const traceSteps = (r.trace || []).filter(t => t.action.startsWith(suite + '/'));
+    if (traceSteps.length === 0) return '';
+    const maxD = Math.max(...traceSteps.map(t => t.duration_ms), 1);
+    return `
+      <div class="trace-section" id="trace-${r.provider}">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Phase Timeline (click card to toggle)</div>
+        <div class="trace-timeline">
+          ${traceSteps.map(t => {
+            const height = Math.max(8, (t.duration_ms / maxD) * 60);
+            const label = t.action.split('/').pop().replace(/_/g, ' ');
+            return `<div class="trace-step">
+              <div class="trace-duration">${formatMs(t.duration_ms)}</div>
+              <div class="trace-bar ${t.success ? 'success' : 'failure'}" style="height:${height}px"></div>
+              <div class="trace-label">${label}</div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }
+
+  window.toggleTrace = function(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active');
+  };
+
+  // ── Comparison table ───────────────────────────────────────────────
+  function renderComparison() {
+    const head = document.getElementById('comparison-head');
+    const body = document.getElementById('comparison-body');
+    const isOverall = activeSuite === 'overall';
+
+    if (isOverall) {
+      // Overall: show per-suite scores as columns
+      head.innerHTML = `<tr>
+        <th>Provider</th>
+        ${INDIVIDUAL_SUITES.map(s => `<th>${SUITE_LABELS[s]}</th>`).join('')}
+        <th>${tip('friction', 'Friction')}</th>
+        <th>${tip('cost', 'Cost')}</th>
+        <th>${tip('cold_start', 'Cold Start')}</th>
+        <th>Overall</th>
+      </tr>`;
+
+      const all = [...DATA.results].filter(r => r.success)
+        .map(r => ({ r, ss: overallScore(r) }))
+        .sort((a,b) => (b.ss||0) - (a.ss||0));
+      body.innerHTML = all.map(({ r, ss }) => {
+        const g = suiteGrade(ss);
+        const allTests = INDIVIDUAL_SUITES.flatMap(s => (r.suite_results && r.suite_results[s]) || []);
+        const friction = allTests.reduce((s,t) => s + (t.friction_points||0), 0);
+        return `<tr>
+          <td><div class="provider-cell"><span class="mini-grade grade-${g}">${g}</span> ${r.provider}</div></td>
+          ${INDIVIDUAL_SUITES.map(s => {
+            const sc = suiteScore(r, s);
+            const sg = suiteGrade(sc);
+            if (sc == null) return '<td class="cap-na">-</td>';
+            return `<td style="color:${gradeColor(sg)};font-weight:600">${sc} <span style="font-size:11px">${sg}</span></td>`;
+          }).join('')}
+          <td>${friction}</td>
+          <td>${getCost(r)}</td>
+          <td>${r.cold_start_seconds ? formatTime(r.cold_start_seconds) : '-'}</td>
+          <td style="font-weight:700;color:${gradeColor(g)}">${ss != null ? ss : '-'}</td>
+        </tr>`;
+      }).join('');
+      return;
+    }
+
+    // Individual suite view
+    let testNames = [];
+    DATA.results.forEach(r => {
+      if (r.suite_results && r.suite_results[activeSuite]) {
+        r.suite_results[activeSuite].forEach(t => {
+          if (!testNames.includes(t.name)) testNames.push(t.name);
+        });
+      }
+    });
+
+    head.innerHTML = `<tr>
+      <th>Provider</th>
+      <th>Grade</th>
+      ${testNames.map(n => `<th>${tip(n, n.replace(/_/g, ' '))}</th>`).join('')}
+      <th>${tip('friction', 'Friction')}</th>
+      <th>${tip('cost', 'Cost')}</th>
+      <th>${tip('cold_start', 'Cold Start')}</th>
+      <th>${tip('score', 'Score')}</th>
+    </tr>`;
+
+    const all = [...DATA.results].filter(r => r.success)
+      .map(r => ({ r, ss: suiteScore(r, activeSuite) }))
+      .sort((a,b) => (b.ss||0) - (a.ss||0));
+    body.innerHTML = all.map(({ r, ss }) => {
+      const tests = (r.suite_results && r.suite_results[activeSuite]) || null;
+      const hasSuite = !!tests;
+      const g = suiteGrade(ss);
+      const friction = tests ? tests.reduce((s,t) => s + (t.friction_points||0), 0) : '-';
+      return `<tr${!hasSuite ? ' style="opacity:0.45"' : ''}>
+        <td><div class="provider-cell"><span class="mini-grade grade-${g}">${g}</span> ${r.provider}</div></td>
+        <td><span class="mini-grade grade-${g}">${g}</span></td>
+        ${testNames.map(n => {
+          if (!tests) return '<td class="cap-na" style="font-size:12px">pending</td>';
+          const t = tests.find(x => x.name === n);
+          if (!t) return '<td class="cap-na">-</td>';
+          return `<td class="${t.success ? 'status-pass' : 'status-fail'}">${t.success ? 'Pass' : 'Fail'} <span style="color:var(--text-muted);font-size:12px">${formatTime(t.duration_seconds)}</span></td>`;
+        }).join('')}
+        <td>${friction}</td>
+        <td>${getCost(r)}</td>
+        <td>${r.cold_start_seconds ? formatTime(r.cold_start_seconds) : '-'}</td>
+        <td style="font-weight:600">${ss != null ? ss : '-'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── Capabilities ───────────────────────────────────────────────────
+  function renderCapabilities() {
+    const section = document.getElementById('capabilities-section');
+    const table = document.getElementById('cap-matrix');
+    const allCaps = new Set();
+    DATA.results.forEach(r => { if (r.capabilities) Object.keys(r.capabilities).forEach(c => allCaps.add(c)); });
+    if (allCaps.size === 0) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    const caps = [...allCaps].sort();
+    const sorted = [...DATA.results].filter(r => r.success).sort((a,b) => b.score - a.score);
+    let html = '<thead><tr><th>Provider</th>' + caps.map(c => `<th>${tip(c, c.replace(/_/g,' '))}</th>`).join('') + '</tr></thead><tbody>';
+    sorted.forEach(r => {
+      html += `<tr><td><div class="provider-cell"><span class="mini-grade grade-${r.grade}">${r.grade}</span> ${r.provider}</div></td>`;
+      caps.forEach(c => {
+        if (!r.capabilities || r.capabilities[c] === undefined) html += '<td class="cap-na">-</td>';
+        else if (r.capabilities[c]) html += '<td class="cap-yes">Y</td>';
+        else html += '<td class="cap-no">N</td>';
+      });
+      html += '</tr>';
+    });
+    table.innerHTML = html + '</tbody>';
+  }
+
+  // ── Performance metrics ────────────────────────────────────────────
+  function renderPerformance() {
+    const section = document.getElementById('performance-section');
+    const grid = document.getElementById('perf-grid');
+    const results = DATA.results;
+    const hasCold = results.some(r => r.cold_start_seconds > 0);
+    const hasWarm = results.some(r => r.warm_start_seconds != null);
+    const hasIO = results.some(r => r.file_io_throughput_mbps != null);
+    if (!hasCold && !hasWarm && !hasIO) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    const sorted = [...results].filter(r => r.success).sort((a,b) => b.score - a.score);
+    let html = '';
+    if (hasCold) {
+      const maxS = Math.max(...sorted.map(r => Math.max(r.cold_start_seconds||0, r.warm_start_seconds||0, r.agent_spawn_seconds||0)), 0.1);
+      html += `<div class="perf-card"><h3>${tip('cold_start','Sandbox Start Time (s)')}</h3><div class="perf-rows">`;
+      sorted.forEach(r => {
+        const cold = r.cold_start_seconds||0;
+        html += `<div class="perf-row"><div class="perf-label">${r.provider}</div><div class="perf-bar-track"><div class="perf-bar-fill" style="width:${(cold/maxS)*100}%"></div></div><div class="perf-value">${cold.toFixed(2)}s</div></div>`;
+        if (r.warm_start_seconds != null) html += `<div class="perf-row"><div class="perf-label" style="font-size:11px;color:var(--text-muted)">&nbsp;&nbsp;warm</div><div class="perf-bar-track"><div class="perf-bar-fill" style="width:${(r.warm_start_seconds/maxS)*100}%;background:var(--green)"></div></div><div class="perf-value" style="color:var(--green)">${r.warm_start_seconds.toFixed(2)}s</div></div>`;
+        if (r.agent_spawn_seconds != null) html += `<div class="perf-row"><div class="perf-label" style="font-size:11px;color:var(--text-muted)">&nbsp;&nbsp;spawn</div><div class="perf-bar-track"><div class="perf-bar-fill" style="width:${(r.agent_spawn_seconds/maxS)*100}%;background:var(--yellow)"></div></div><div class="perf-value" style="color:var(--yellow)">${r.agent_spawn_seconds.toFixed(2)}s</div></div>`;
+      });
+      html += '</div></div>';
+    }
+    if (hasIO) {
+      const maxTP = Math.max(...sorted.map(r => r.file_io_throughput_mbps||0), 0.1);
+      html += `<div class="perf-card"><h3>${tip('file_io_throughput','File I/O Throughput (MB/s)')}</h3><div class="perf-rows">`;
+      sorted.forEach(r => {
+        const tp = r.file_io_throughput_mbps;
+        if (tp != null) html += `<div class="perf-row"><div class="perf-label">${r.provider}</div><div class="perf-bar-track"><div class="perf-bar-fill" style="width:${(tp/maxTP)*100}%"></div></div><div class="perf-value">${tp.toFixed(1)}</div></div>`;
+        else html += `<div class="perf-row"><div class="perf-label">${r.provider}</div><div class="perf-bar-track"></div><div class="perf-value cap-na">-</div></div>`;
+      });
+      html += '</div></div>';
+    }
+    grid.innerHTML = html;
+  }
+
+  // ── Methodology ────────────────────────────────────────────────────
+  function renderMethodology() {
+    const container = document.getElementById('weight-bars');
+    const hasCaps = DATA.results.some(r => r.capabilities && Object.keys(r.capabilities).length > 0);
+    const weights = hasCaps
+      ? [{ key:'time',name:'Time',pct:25 },{ key:'errors',name:'Errors',pct:20 },{ key:'friction',name:'Friction',pct:15 },{ key:'tool_calls',name:'Tool Calls',pct:10 },{ key:'cost',name:'Cost',pct:10 },{ key:'discoverability',name:'Discoverability',pct:10 },{ key:'capabilities',name:'Capabilities',pct:10 }]
+      : [{ key:'time',name:'Time',pct:30 },{ key:'errors',name:'Errors',pct:20 },{ key:'tool_calls',name:'Tool Calls',pct:15 },{ key:'friction',name:'Friction',pct:15 },{ key:'cost',name:'Cost',pct:10 },{ key:'discoverability',name:'Discoverability',pct:10 }];
+    const maxP = Math.max(...weights.map(w => w.pct));
+    container.innerHTML = weights.map(w => {
+      const t = TIPS[w.key]; const desc = t ? t.def : '';
+      return `<div class="weight-item"><div class="weight-header"><span class="weight-name">${tip(w.key,w.name)}</span><span class="weight-pct">${w.pct}%</span></div><div class="weight-track"><div class="weight-fill" style="width:${(w.pct/maxP)*100}%"></div></div><span style="font-size:11px;color:var(--text-muted)">${desc}</span></div>`;
+    }).join('');
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────
+  document.getElementById('run-info').innerHTML = `${DATA.results.length} providers &middot; ${DATA.config.runs} runs each &middot; best-of-N scoring &middot; suites: ${DATA.config.suites.join(', ')}`;
+  renderTabs();
+  renderScoreChart();
+  renderLeaderboard();
+  renderComparison();
+  renderCapabilities();
+  renderPerformance();
+  renderMethodology();
+
+})();
+</script>
+</body>
+</html>

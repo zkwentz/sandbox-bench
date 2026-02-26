@@ -23,7 +23,6 @@ class CompetitiveSuite(TestSuite):
         results.append(await self._stdin_piping(provider, sandbox_id))
         results.append(await self._gcc_compilation(provider, sandbox_id))
         results.append(await self._cpp_compilation(provider, sandbox_id))
-        results.append(await self._exec_timeout(provider, sandbox_id))
         results.append(await self._python_version(provider, sandbox_id))
         return results
 

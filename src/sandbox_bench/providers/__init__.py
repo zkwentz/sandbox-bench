@@ -7,6 +7,7 @@ from .codesandbox import CodeSandboxProvider
 from .fly import FlyProvider
 from .docker_image import DockerImageProvider
 from .microvm import MicroVMProvider
+from .vmvm import VMVMProvider
 
 __all__ = [
     "E2BProvider",
@@ -16,4 +17,5 @@ __all__ = [
     "FlyProvider",
     "DockerImageProvider",
     "MicroVMProvider",
+    "VMVMProvider",
 ]

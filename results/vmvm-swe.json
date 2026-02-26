@@ -1,0 +1,156 @@
+{
+  "config": {
+    "providers": [
+      "vmvm"
+    ],
+    "suites": [
+      "swe"
+    ],
+    "agent_mode": false,
+    "model": "claude-opus-4",
+    "runs": 3
+  },
+  "results": [
+    {
+      "provider": "vmvm",
+      "success": true,
+      "total_time_seconds": 2.6228349208831787,
+      "tool_calls": 10,
+      "friction_points": 2,
+      "errors": 0,
+      "error_messages": [],
+      "estimated_cost_usd": 0.0,
+      "sandbox_cost_usd": 0.0,
+      "discoverability_score": 3.5,
+      "score": 83.8,
+      "grade": "B",
+      "trace": [
+        {
+          "timestamp": 1772129277.880291,
+          "action": "authenticate",
+          "duration_ms": 241.6386604309082,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1772129278.4826431,
+          "action": "create_sandbox",
+          "duration_ms": 602.3411750793457,
+          "success": true,
+          "details": {
+            "sandbox_id": "019c9b22-cbf3-75e3-a64b-8d4393ac55f6"
+          }
+        },
+        {
+          "timestamp": 1772129280.097594,
+          "action": "swe/network_access",
+          "duration_ms": 494.80509757995605,
+          "success": true,
+          "details": {
+            "stdout": "200\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772129280.0976052,
+          "action": "swe/pip_install",
+          "duration_ms": 121.96135520935059,
+          "success": false,
+          "details": {
+            "stdout": "",
+            "stderr": "bash: line 1: pip: command not found\n",
+            "exit_code": 127
+          }
+        },
+        {
+          "timestamp": 1772129280.0976093,
+          "action": "swe/git_clone",
+          "duration_ms": 620.9850311279297,
+          "success": true,
+          "details": {
+            "stdout": "Cloning into '/tmp/flask-test'...\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772129280.0976126,
+          "action": "swe/pytest_run",
+          "duration_ms": 377.1243095397949,
+          "success": false,
+          "details": {
+            "stdout": "/usr/bin/python3: No module named pytest\n",
+            "stderr": "",
+            "exit_code": 1
+          }
+        },
+        {
+          "timestamp": 1772129280.2614672,
+          "action": "destroy",
+          "duration_ms": 163.84601593017578,
+          "success": true,
+          "details": {}
+        }
+      ],
+      "suites_run": [
+        "swe"
+      ],
+      "suite_results": {
+        "swe": [
+          {
+            "name": "network_access",
+            "success": true,
+            "duration_seconds": 0.49480509757995605,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "network_access",
+            "capability_supported": true
+          },
+          {
+            "name": "pip_install",
+            "success": false,
+            "duration_seconds": 0.12196135520935059,
+            "tool_calls": 1,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "pip_install",
+            "capability_supported": false
+          },
+          {
+            "name": "git_clone",
+            "success": true,
+            "duration_seconds": 0.6209850311279297,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "git_clone",
+            "capability_supported": true
+          },
+          {
+            "name": "pytest_run",
+            "success": false,
+            "duration_seconds": 0.3771243095397949,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "pytest",
+            "capability_supported": false
+          }
+        ]
+      },
+      "capabilities": {
+        "network_access": true,
+        "pip_install": false,
+        "git_clone": true,
+        "pytest": false
+      },
+      "capability_score": 0.5,
+      "cold_start_seconds": 0.6023411750793457,
+      "warm_start_seconds": null,
+      "agent_spawn_seconds": null,
+      "file_io_throughput_mbps": null
+    }
+  ]
+}

@@ -10,6 +10,7 @@ PROVIDER_RATES: dict[str, float] = {
     "fly": 0.0000095,      # ~$0.034/hr (fly.io/pricing)
     "docker-image": 0.0,   # Local, no cost
     "microvm": 0.0,        # Local, no cost
+    "vmvm": 0.0,           # Meta internal, no external cost
 }
 
 # Default rate when a provider is not in the table
