@@ -8,6 +8,7 @@ from .fly import FlyProvider
 from .docker_image import DockerImageProvider
 from .microvm import MicroVMProvider
 from .vmvm import VMVMProvider
+from .blaxel import BlaxelProvider
 
 __all__ = [
     "E2BProvider",
@@ -18,4 +19,5 @@ __all__ = [
     "DockerImageProvider",
     "MicroVMProvider",
     "VMVMProvider",
+    "BlaxelProvider",
 ]

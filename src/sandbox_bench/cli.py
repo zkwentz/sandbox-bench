@@ -35,6 +35,8 @@ def load_api_keys(env_file: str | None = None) -> Dict[str, str]:
         "microvm": os.environ.get("MICROVM_COMMAND", ""),
         # Meta internal
         "vmvm": os.environ.get("VMVM_TENANT_ID", ""),
+        # Blaxel
+        "blaxel": os.environ.get("BL_API_KEY", ""),
     }
 
 

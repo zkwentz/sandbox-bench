@@ -11,6 +11,7 @@ PROVIDER_RATES: dict[str, float] = {
     "docker-image": 0.0,   # Local, no cost
     "microvm": 0.0,        # Local, no cost
     "vmvm": 0.0,           # Meta internal, no external cost
+    "blaxel": 0.000139,    # ~$0.50/hr  (blaxel.ai/pricing)
 }
 
 # Default rate when a provider is not in the table
