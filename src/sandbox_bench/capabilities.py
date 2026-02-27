@@ -25,6 +25,13 @@ CAPABILITY_DESCRIPTIONS: Dict[str, str] = {
     # Performance
     "agent_spawn": "End-to-end sub-agent spawn to sandbox ready",
     "warm_start": "Warm/pre-warmed sandbox creation",
+    # MCP
+    "npx_mcp": "npx available for running MCP servers",
+    "uvx_mcp": "uvx available for running MCP servers",
+    "mcp_stdio": "MCP server launch and JSON-RPC stdio communication",
+    "mcp_filesystem": "MCP filesystem server (list/read files)",
+    "mcp_network": "MCP fetch server (outbound HTTP via MCP)",
+    "mcp_multi": "Multiple MCP servers running concurrently",
 }
 
 

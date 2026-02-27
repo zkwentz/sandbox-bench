@@ -15,7 +15,7 @@ from .suites import list_suites
 from .capabilities import CAPABILITY_DESCRIPTIONS
 
 
-SUITE_CHOICES = ["basic", "competitive", "swe", "environment", "performance", "full"]
+SUITE_CHOICES = ["basic", "competitive", "swe", "environment", "performance", "mcp", "full"]
 
 
 def load_api_keys(env_file: str | None = None) -> Dict[str, str]:
@@ -29,7 +29,7 @@ def load_api_keys(env_file: str | None = None) -> Dict[str, str]:
         "daytona": os.environ.get("DAYTONA_API_KEY", ""),
         "modal": os.environ.get("MODAL_TOKEN_ID", ""),  # Modal uses token ID
         "codesandbox": os.environ.get("CODESANDBOX_API_KEY", ""),
-        "fly": os.environ.get("FLY_API_TOKEN", ""),
+        "fly": os.environ.get("SPRITE_TOKEN", "") or os.environ.get("FLY_API_TOKEN", ""),
         # Generic providers - pass image name or VM command
         "docker-image": os.environ.get("DOCKER_IMAGE", ""),
         "microvm": os.environ.get("MICROVM_COMMAND", ""),
