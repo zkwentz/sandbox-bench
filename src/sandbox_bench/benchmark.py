@@ -18,10 +18,11 @@ from .suites import environment as _environment  # noqa: F401
 from .suites import performance as _performance  # noqa: F401
 from .suites import mcp as _mcp  # noqa: F401
 from .suites import networking as _networking  # noqa: F401
+from .suites import training_batch as _training_batch  # noqa: F401
 
 # The "full" alias expands to all available suites
 SUITE_ALIASES = {
-    "full": ["basic", "competitive", "swe", "environment", "performance", "mcp", "networking"],
+    "full": ["basic", "competitive", "swe", "environment", "performance", "mcp", "networking", "training_batch"],
 }
 
 

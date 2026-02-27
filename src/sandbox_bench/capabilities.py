@@ -47,6 +47,12 @@ CAPABILITY_DESCRIPTIONS: Dict[str, str] = {
     "ssh_outbound": "TCP to SSH port and banner read",
     "bandwidth": "Download bandwidth estimate (100KB file)",
     "concurrent_connections": "20 simultaneous TCP connections",
+    # Training Batch
+    "batch_256": "Concurrent provisioning of 256 sandboxes",
+    "batch_1024": "Concurrent provisioning of 1,024 sandboxes",
+    "batch_8192": "Concurrent provisioning of 8,192 sandboxes",
+    "batch_65536": "Concurrent provisioning of 65,536 sandboxes",
+    "batch_262144": "Concurrent provisioning of 262,144 sandboxes",
 }
 
 
