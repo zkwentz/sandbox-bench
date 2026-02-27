@@ -11,6 +11,9 @@ per lease would exhaust Python memory.
 """
 
 import asyncio
+import os
+import random
+import sys
 import time
 from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
@@ -18,8 +21,13 @@ from typing import Dict, List, Optional, Tuple
 from . import PhaseResult, TestSuite, register_suite
 from ..provider import SandboxProvider
 
+
+def _log(msg: str) -> None:
+    """Flush-safe progress log to stderr."""
+    print(f"  [training_batch] {msg}", file=sys.stderr, flush=True)
+
 # Tier definitions: (name, batch_size, capability_name)
-TIERS = [
+ALL_TIERS = [
     ("tier_1_256", 256, "batch_256"),
     ("tier_2_1024", 1_024, "batch_1024"),
     ("tier_3_8192", 8_192, "batch_8192"),
@@ -27,15 +35,24 @@ TIERS = [
     ("tier_5_262144", 262_144, "batch_262144"),
 ]
 
+# TRAINING_BATCH_MAX_TIER env var limits how many tiers to run (1-5, default all)
+_max_tier = int(os.environ.get("TRAINING_BATCH_MAX_TIER", len(ALL_TIERS)))
+TIERS = ALL_TIERS[:max(1, min(_max_tier, len(ALL_TIERS)))]
+
 TIER_TIMEOUT = 600  # 10 minutes per tier
 CREATE_TIMEOUT = 60  # 60s per individual create
 WORKER_POOL_SIZE = 500  # concurrent worker coroutines per phase
 CASCADE_THRESHOLD = 0.50  # skip remaining tiers if < 50% success
+RESOURCE_RETRY_MAX = 5  # retries on resource-limit / rate-limit errors
+RESOURCE_RETRY_BASE = 2.0  # base backoff seconds (doubles each attempt)
 
 
 def _classify_error(e: Exception) -> str:
     """Classify an exception into a failure mode bucket."""
     msg = str(e).lower()
+    # Resource exhaustion (inotify, file descriptors, memory, etc.)
+    if any(tok in msg for tok in ("inotify", "too many open files", "emfile", "enfile", "no space left")):
+        return "resource_limit"
     if "rate" in msg and "limit" in msg:
         return "rate_limit"
     if "timeout" in msg or "timed out" in msg:
@@ -65,8 +82,10 @@ class TrainingBatchSuite(TestSuite):
         results = []
         cascade_failed = False
 
-        for tier_name, batch_size, capability in TIERS:
+        _log(f"Starting training_batch suite ({len(TIERS)} tiers)")
+        for i, (tier_name, batch_size, capability) in enumerate(TIERS, 1):
             if cascade_failed:
+                _log(f"Tier {i}/{len(TIERS)} {tier_name}: SKIPPED (cascade)")
                 results.append(PhaseResult(
                     name=tier_name,
                     success=False,
@@ -77,6 +96,7 @@ class TrainingBatchSuite(TestSuite):
                 ))
                 continue
 
+            _log(f"Tier {i}/{len(TIERS)} {tier_name}: starting ({batch_size} sandboxes)")
             result = await self._run_tier(
                 provider, tier_name, batch_size, capability
             )
@@ -85,8 +105,16 @@ class TrainingBatchSuite(TestSuite):
             # Check cascade rule
             created = result.details.get("created", 0)
             requested = result.details.get("requested", 0)
-            if requested > 0 and created / requested < CASCADE_THRESHOLD:
+            rate = created / requested if requested > 0 else 0
+            _log(
+                f"Tier {i}/{len(TIERS)} {tier_name}: "
+                f"{'PASS' if result.success else 'FAIL'} "
+                f"({created}/{requested} created, {rate:.0%} success, "
+                f"{result.duration_seconds:.1f}s)"
+            )
+            if requested > 0 and rate < CASCADE_THRESHOLD:
                 cascade_failed = True
+                _log(f"Cascade threshold not met ({rate:.0%} < {CASCADE_THRESHOLD:.0%}), skipping remaining tiers")
 
         return results
 
@@ -114,27 +142,58 @@ class TrainingBatchSuite(TestSuite):
         # Shared mutable counter — safe because asyncio is single-threaded;
         # no two workers execute between the same pair of await points.
         create_remaining = batch_size
+        _last_log_count = [0]  # mutable ref for progress logging
+
+        async def _progress_logger():
+            """Periodically log create phase progress."""
+            while True:
+                await asyncio.sleep(5)
+                done = len(created_ids) + failed_count
+                if done != _last_log_count[0]:
+                    _last_log_count[0] = done
+                    elapsed = time.time() - t_create
+                    _log(
+                        f"  CREATE: {len(created_ids)} ok + {failed_count} fail "
+                        f"= {done}/{batch_size} ({elapsed:.0f}s elapsed)"
+                    )
+
+        _retried_count = [0]  # track retries for logging
 
         async def _create_worker():
             nonlocal create_remaining, failed_count
             while create_remaining > 0:
                 create_remaining -= 1
-                try:
-                    sid = await asyncio.wait_for(
-                        provider.create_sandbox(timeout_seconds=CREATE_TIMEOUT),
-                        timeout=CREATE_TIMEOUT,
-                    )
-                    created_ids.append(sid)
-                except Exception as e:
-                    failed_count += 1
-                    mode = _classify_error(e)
-                    failure_modes[mode] += 1
-                    msg = str(e)
-                    if len(failure_samples) < 5 and msg not in failure_samples:
-                        failure_samples.append(msg)
+                succeeded = False
+                for attempt in range(RESOURCE_RETRY_MAX + 1):
+                    try:
+                        sid = await asyncio.wait_for(
+                            provider.create_sandbox(timeout_seconds=CREATE_TIMEOUT),
+                            timeout=CREATE_TIMEOUT,
+                        )
+                        created_ids.append(sid)
+                        succeeded = True
+                        break
+                    except Exception as e:
+                        mode = _classify_error(e)
+                        if mode in ("resource_limit", "rate_limit") and attempt < RESOURCE_RETRY_MAX:
+                            # Back off with jitter, letting in-flight creates
+                            # finish and release system resources (inotify watches, fds)
+                            backoff = min(RESOURCE_RETRY_BASE * (2 ** attempt) + random.uniform(0, 1), 30)
+                            _retried_count[0] += 1
+                            await asyncio.sleep(backoff)
+                            continue
+                        # Terminal failure — record and move on
+                        failed_count += 1
+                        failure_modes[mode] += 1
+                        msg = str(e)
+                        if len(failure_samples) < 5 and msg not in failure_samples:
+                            failure_samples.append(msg)
+                        break
 
         num_create_workers = min(WORKER_POOL_SIZE, batch_size)
+        _log(f"  CREATE phase: {batch_size} sandboxes, {num_create_workers} workers")
         t_create = time.time()
+        progress_task = asyncio.create_task(_progress_logger())
         try:
             await asyncio.wait_for(
                 asyncio.gather(
@@ -150,11 +209,42 @@ class TrainingBatchSuite(TestSuite):
             failed_count += timed_out_count
             if len(failure_samples) < 5:
                 failure_samples.append(f"Tier timeout after {TIER_TIMEOUT}s")
+            _log(f"  CREATE phase: TIMED OUT after {TIER_TIMEOUT}s")
+        finally:
+            progress_task.cancel()
+            try:
+                await progress_task
+            except asyncio.CancelledError:
+                pass
         create_duration = time.time() - t_create
+        retried = _retried_count[0]
+        _log(
+            f"  CREATE done: {len(created_ids)} ok, {failed_count} fail "
+            f"in {create_duration:.1f}s "
+            f"({len(created_ids)/create_duration:.1f} sandboxes/s)"
+            + (f" [{retried} retries]" if retried else "")
+            if create_duration > 0 else
+            f"  CREATE done: {len(created_ids)} ok, {failed_count} fail"
+        )
+        if failure_modes:
+            _log(f"  Failure modes: {dict(failure_modes)}")
 
         # --- Verify phase (worker pool) ---
         ready_count = 0
         verify_idx = 0  # index into created_ids
+        _verify_last_log = [0]
+
+        async def _verify_progress_logger():
+            while True:
+                await asyncio.sleep(5)
+                done = ready_count + (verify_idx - ready_count)
+                if done != _verify_last_log[0]:
+                    _verify_last_log[0] = done
+                    elapsed = time.time() - t_verify
+                    _log(
+                        f"  VERIFY: {ready_count}/{verify_idx} ready "
+                        f"of {len(created_ids)} ({elapsed:.0f}s elapsed)"
+                    )
 
         async def _verify_worker():
             nonlocal verify_idx, ready_count
@@ -173,8 +263,10 @@ class TrainingBatchSuite(TestSuite):
                     pass
 
         num_verify_workers = min(WORKER_POOL_SIZE, len(created_ids))
+        _log(f"  VERIFY phase: {len(created_ids)} sandboxes, {num_verify_workers} workers")
         t_verify = time.time()
         if created_ids:
+            verify_progress = asyncio.create_task(_verify_progress_logger())
             try:
                 await asyncio.wait_for(
                     asyncio.gather(
@@ -184,13 +276,22 @@ class TrainingBatchSuite(TestSuite):
                     timeout=TIER_TIMEOUT,
                 )
             except asyncio.TimeoutError:
-                pass  # ready_count stays at whatever we got
+                _log(f"  VERIFY phase: TIMED OUT after {TIER_TIMEOUT}s")
+            finally:
+                verify_progress.cancel()
+                try:
+                    await verify_progress
+                except asyncio.CancelledError:
+                    pass
         verify_duration = time.time() - t_verify
+        _log(f"  VERIFY done: {ready_count}/{len(created_ids)} ready in {verify_duration:.1f}s")
 
         # --- Destroy phase (worker pool) ---
+        _log(f"  DESTROY phase: {len(created_ids)} sandboxes")
         t_destroy = time.time()
         await self._cleanup_pool(provider, created_ids)
         destroy_duration = time.time() - t_destroy
+        _log(f"  DESTROY done: {len(created_ids)} in {destroy_duration:.1f}s")
 
         total_duration = time.time() - t_tier
 
@@ -223,6 +324,7 @@ class TrainingBatchSuite(TestSuite):
                 "destroy_duration_seconds": round(destroy_duration, 3),
                 "throughput_sandboxes_per_sec": round(throughput, 2),
                 "worker_pool_size": num_create_workers,
+                "resource_retries": _retried_count[0],
             },
         )
 
