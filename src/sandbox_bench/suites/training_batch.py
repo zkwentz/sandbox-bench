@@ -2,6 +2,12 @@
 
 Measures how providers handle concurrent sandbox provisioning at scale,
 emulating a training batch job where N sandboxes spin up simultaneously.
+
+Uses a worker-pool pattern: a fixed number of long-lived worker coroutines
+each loop and grab the next unit of work.  This keeps all work concurrent
+(no sequential waves) while bounding memory to O(pool_size) instead of
+O(batch_size) — critical at 65K+ sandboxes where creating one coroutine
+per lease would exhaust Python memory.
 """
 
 import asyncio
@@ -23,9 +29,8 @@ TIERS = [
 
 TIER_TIMEOUT = 600  # 10 minutes per tier
 CREATE_TIMEOUT = 60  # 60s per individual create
-CONCURRENCY_LIMIT = 100  # semaphore to prevent local resource exhaustion
+WORKER_POOL_SIZE = 500  # concurrent worker coroutines per phase
 CASCADE_THRESHOLD = 0.50  # skip remaining tiers if < 50% success
-WORKER_BATCH_SIZE = 500  # max leases per wave to avoid Python memory exhaustion
 
 
 def _classify_error(e: Exception) -> str:
@@ -94,114 +99,97 @@ class TrainingBatchSuite(TestSuite):
     ) -> PhaseResult:
         """Run a single tier: create N sandboxes concurrently, verify, destroy.
 
-        Work is broken into waves of WORKER_BATCH_SIZE to avoid creating
-        hundreds of thousands of coroutines in a single asyncio.gather call,
-        which would exhaust Python memory.
+        Uses a fixed-size worker pool so all batch_size leases are issued
+        concurrently (up to WORKER_POOL_SIZE in-flight at once) without
+        allocating one coroutine per lease.
         """
-        sem = asyncio.Semaphore(CONCURRENCY_LIMIT)
         created_ids: List[str] = []
         failure_modes: Dict[str, int] = defaultdict(int)
         failure_samples: List[str] = []
         failed_count = 0
 
         t_tier = time.time()
-        tier_deadline = t_tier + TIER_TIMEOUT
 
-        # --- Create phase (in waves) ---
-        async def _create_one() -> Optional[str]:
-            async with sem:
+        # --- Create phase (worker pool) ---
+        # Shared mutable counter — safe because asyncio is single-threaded;
+        # no two workers execute between the same pair of await points.
+        create_remaining = batch_size
+
+        async def _create_worker():
+            nonlocal create_remaining, failed_count
+            while create_remaining > 0:
+                create_remaining -= 1
                 try:
                     sid = await asyncio.wait_for(
                         provider.create_sandbox(timeout_seconds=CREATE_TIMEOUT),
                         timeout=CREATE_TIMEOUT,
                     )
-                    return sid
+                    created_ids.append(sid)
                 except Exception as e:
-                    return e
-
-        t_create = time.time()
-        remaining = batch_size
-        timed_out = False
-        while remaining > 0 and not timed_out:
-            wave_size = min(remaining, WORKER_BATCH_SIZE)
-            remaining -= wave_size
-
-            wave_timeout = max(1, tier_deadline - time.time())
-            try:
-                wave_results = await asyncio.wait_for(
-                    asyncio.gather(
-                        *[_create_one() for _ in range(wave_size)],
-                        return_exceptions=True,
-                    ),
-                    timeout=wave_timeout,
-                )
-            except asyncio.TimeoutError:
-                timed_out = True
-                # Count remaining in this wave + all future waves as timed out
-                failure_modes["tier_timeout"] += wave_size + remaining
-                failed_count += wave_size + remaining
-                remaining = 0
-                if len(failure_samples) < 5:
-                    failure_samples.append(f"Tier timeout after {TIER_TIMEOUT}s")
-                break
-
-            for res in wave_results:
-                if isinstance(res, str):
-                    created_ids.append(res)
-                elif isinstance(res, Exception):
                     failed_count += 1
-                    mode = _classify_error(res)
+                    mode = _classify_error(e)
                     failure_modes[mode] += 1
-                    msg = str(res)
+                    msg = str(e)
                     if len(failure_samples) < 5 and msg not in failure_samples:
                         failure_samples.append(msg)
-                else:
-                    failed_count += 1
-                    failure_modes["unknown"] += 1
 
+        num_create_workers = min(WORKER_POOL_SIZE, batch_size)
+        t_create = time.time()
+        try:
+            await asyncio.wait_for(
+                asyncio.gather(
+                    *[_create_worker() for _ in range(num_create_workers)],
+                    return_exceptions=True,
+                ),
+                timeout=TIER_TIMEOUT,
+            )
+        except asyncio.TimeoutError:
+            # Whatever hasn't been claimed yet counts as timed out
+            timed_out_count = max(0, create_remaining)
+            failure_modes["tier_timeout"] += timed_out_count
+            failed_count += timed_out_count
+            if len(failure_samples) < 5:
+                failure_samples.append(f"Tier timeout after {TIER_TIMEOUT}s")
         create_duration = time.time() - t_create
 
-        # --- Verify phase (in waves) ---
+        # --- Verify phase (worker pool) ---
         ready_count = 0
+        verify_idx = 0  # index into created_ids
 
-        async def _verify_one(sid: str) -> bool:
-            async with sem:
+        async def _verify_worker():
+            nonlocal verify_idx, ready_count
+            while verify_idx < len(created_ids):
+                idx = verify_idx
+                verify_idx += 1
+                sid = created_ids[idx]
                 try:
                     stdout, stderr, exit_code = await asyncio.wait_for(
                         provider.execute_command(sid, "echo ready"),
                         timeout=30,
                     )
-                    return exit_code == 0 and "ready" in stdout
+                    if exit_code == 0 and "ready" in stdout:
+                        ready_count += 1
                 except Exception:
-                    return False
+                    pass
 
+        num_verify_workers = min(WORKER_POOL_SIZE, len(created_ids))
         t_verify = time.time()
-        verify_deadline = time.time() + TIER_TIMEOUT
-        ids_to_verify = list(created_ids)
-        while ids_to_verify:
-            wave = ids_to_verify[:WORKER_BATCH_SIZE]
-            ids_to_verify = ids_to_verify[WORKER_BATCH_SIZE:]
-
-            wave_timeout = max(1, verify_deadline - time.time())
+        if created_ids:
             try:
-                verify_results = await asyncio.wait_for(
+                await asyncio.wait_for(
                     asyncio.gather(
-                        *[_verify_one(sid) for sid in wave],
+                        *[_verify_worker() for _ in range(num_verify_workers)],
                         return_exceptions=True,
                     ),
-                    timeout=wave_timeout,
+                    timeout=TIER_TIMEOUT,
                 )
-                for vr in verify_results:
-                    if vr is True:
-                        ready_count += 1
             except asyncio.TimeoutError:
-                break  # ready_count stays at whatever we got
-
+                pass  # ready_count stays at whatever we got
         verify_duration = time.time() - t_verify
 
-        # --- Destroy phase (in waves) ---
+        # --- Destroy phase (worker pool) ---
         t_destroy = time.time()
-        await self._cleanup_batch(provider, created_ids, sem)
+        await self._cleanup_pool(provider, created_ids)
         destroy_duration = time.time() - t_destroy
 
         total_duration = time.time() - t_tier
@@ -234,39 +222,39 @@ class TrainingBatchSuite(TestSuite):
                 "verify_duration_seconds": round(verify_duration, 3),
                 "destroy_duration_seconds": round(destroy_duration, 3),
                 "throughput_sandboxes_per_sec": round(throughput, 2),
-                "worker_batch_size": WORKER_BATCH_SIZE,
-                "waves_needed": (batch_size + WORKER_BATCH_SIZE - 1) // WORKER_BATCH_SIZE,
+                "worker_pool_size": num_create_workers,
             },
         )
 
-    async def _cleanup_batch(
+    async def _cleanup_pool(
         self,
         provider: SandboxProvider,
         sandbox_ids: List[str],
-        sem: asyncio.Semaphore,
     ) -> None:
-        """Destroy all sandboxes in waves, swallowing errors."""
+        """Destroy all sandboxes using a worker pool, swallowing errors."""
         if not sandbox_ids:
             return
 
-        async def _destroy_one(sid: str) -> None:
-            async with sem:
+        destroy_idx = 0
+
+        async def _destroy_worker():
+            nonlocal destroy_idx
+            while destroy_idx < len(sandbox_ids):
+                idx = destroy_idx
+                destroy_idx += 1
                 try:
                     await asyncio.wait_for(
-                        provider.destroy(sid),
+                        provider.destroy(sandbox_ids[idx]),
                         timeout=30,
                     )
                 except Exception:
                     pass
 
-        remaining = list(sandbox_ids)
-        while remaining:
-            wave = remaining[:WORKER_BATCH_SIZE]
-            remaining = remaining[WORKER_BATCH_SIZE:]
-            await asyncio.gather(
-                *[_destroy_one(sid) for sid in wave],
-                return_exceptions=True,
-            )
+        num_workers = min(WORKER_POOL_SIZE, len(sandbox_ids))
+        await asyncio.gather(
+            *[_destroy_worker() for _ in range(num_workers)],
+            return_exceptions=True,
+        )
 
 
 register_suite(TrainingBatchSuite)
