@@ -53,6 +53,11 @@ CAPABILITY_DESCRIPTIONS: Dict[str, str] = {
     "batch_8192": "Concurrent provisioning of 8,192 sandboxes",
     "batch_65536": "Concurrent provisioning of 65,536 sandboxes",
     "batch_262144": "Concurrent provisioning of 262,144 sandboxes",
+    # Agentic Session
+    "session_load": "Load 2GiB disk + 2GiB RAM state into sandbox",
+    "session_snapshot": "Snapshot sandbox with loaded state",
+    "session_restore": "Restore sandbox from snapshot",
+    "session_verify": "Verify restored state matches original (checksum)",
 }
 
 

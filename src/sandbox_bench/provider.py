@@ -178,6 +178,35 @@ class SandboxProvider(ABC):
             sandbox_id, command, language="sh", timeout_seconds=timeout_seconds
         )
 
+    async def snapshot(self, sandbox_id: str) -> str:
+        """Snapshot a sandbox, returning a snapshot ID.
+
+        Args:
+            sandbox_id: The sandbox to snapshot
+
+        Returns:
+            Snapshot ID that can be passed to restore()
+
+        Raises:
+            NotImplementedError: If the provider does not support snapshots
+        """
+        raise NotImplementedError(f"{self.name} does not support snapshot")
+
+    async def restore(self, snapshot_id: str, timeout_seconds: int = 300) -> str:
+        """Restore a sandbox from a snapshot ID, returning a new sandbox ID.
+
+        Args:
+            snapshot_id: The snapshot to restore from
+            timeout_seconds: Auto-destroy after this many seconds
+
+        Returns:
+            New sandbox ID
+
+        Raises:
+            NotImplementedError: If the provider does not support restore
+        """
+        raise NotImplementedError(f"{self.name} does not support restore")
+
     async def get_status(self, sandbox_id: str) -> str:
         """
         Get sandbox status.

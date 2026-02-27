@@ -15,7 +15,7 @@ from .suites import list_suites
 from .capabilities import CAPABILITY_DESCRIPTIONS
 
 
-SUITE_CHOICES = ["basic", "competitive", "swe", "environment", "performance", "mcp", "networking", "training_batch", "full"]
+SUITE_CHOICES = ["basic", "competitive", "swe", "environment", "performance", "mcp", "networking", "training_batch", "agentic_session", "full"]
 
 
 def load_api_keys(env_file: str | None = None) -> Dict[str, str]:
