@@ -1,0 +1,667 @@
+{
+  "config": {
+    "providers": [
+      "codesandbox"
+    ],
+    "suites": [
+      "full"
+    ],
+    "agent_mode": false,
+    "model": "claude-opus-4",
+    "runs": 3
+  },
+  "results": [
+    {
+      "provider": "codesandbox",
+      "success": true,
+      "total_time_seconds": 49.220346212387085,
+      "tool_calls": 32,
+      "friction_points": 6,
+      "errors": 5,
+      "error_messages": [
+        "Cannot send a request, as the client has been closed.",
+        "sent 1000 (OK); then received 1000 (OK)",
+        "sent 1000 (OK); then received 1000 (OK)",
+        "sent 1000 (OK); then received 1000 (OK)",
+        "sent 1000 (OK); then received 1000 (OK)"
+      ],
+      "estimated_cost_usd": 0.013683,
+      "sandbox_cost_usd": 0.013683,
+      "discoverability_score": 3.5,
+      "score": 60.1,
+      "grade": "C",
+      "trace": [
+        {
+          "timestamp": 1772125954.671516,
+          "action": "authenticate",
+          "duration_ms": 191.56813621520996,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1772125956.663605,
+          "action": "create_sandbox",
+          "duration_ms": 1992.0709133148193,
+          "success": true,
+          "details": {
+            "sandbox_id": "49r8yk"
+          }
+        },
+        {
+          "timestamp": 1772125957.188768,
+          "action": "basic/execute_hello",
+          "duration_ms": 394.62995529174805,
+          "success": true,
+          "details": {
+            "stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\nHello from sandbox-bench!\r\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772125957.188779,
+          "action": "basic/file_io",
+          "duration_ms": 130.44404983520508,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1772125958.359753,
+          "action": "competitive/stdin_piping",
+          "duration_ms": 125.34189224243164,
+          "success": true,
+          "details": {
+            "stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\n8\r\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772125958.3597598,
+          "action": "competitive/gcc_compilation",
+          "duration_ms": 410.69698333740234,
+          "success": true,
+          "details": {
+            "stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\nhello-c\r\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772125958.3597639,
+          "action": "competitive/cpp_compilation",
+          "duration_ms": 524.960994720459,
+          "success": true,
+          "details": {
+            "stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\nhello-cpp\r\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772125958.359767,
+          "action": "competitive/python_version",
+          "duration_ms": 109.89809036254883,
+          "success": true,
+          "details": {
+            "version": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\nPython 3.10.13"
+          }
+        },
+        {
+          "timestamp": 1772125963.283597,
+          "action": "swe/network_access",
+          "duration_ms": 518.3758735656738,
+          "success": true,
+          "details": {
+            "stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\n200\r\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772125963.283604,
+          "action": "swe/pip_install",
+          "duration_ms": 1470.4318046569824,
+          "success": true,
+          "details": {
+            "stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\n\u001b[33mWARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv\u001b[0m\u001b[33m\r\n\u001b[0m\r\n\u001b[1m[\u001b[0m\u001b[34;49mnotice\u001b[0m\u001b[1;39;49m]\u001b[0m\u001b[39;49m A new release of pip is available: \u001b[0m\u001b[31;49m24.0\u001b[0m\u001b[39;49m -> \u001b[0m\u001b[32;49m26.0.1\u001b[0m\r\n\u001b[1m[\u001b[0m\u001b[34;49mnotice\u001b[0m\u001b[1;39;49m]\u001b[0m\u001b[39;49m To update, run: \u001b[0m\u001b[32;49mpython3 -m pip install --upgrade pip\u001b[0m\r\n2.31.0\r\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772125963.283608,
+          "action": "swe/git_clone",
+          "duration_ms": 820.6131458282471,
+          "success": true,
+          "details": {
+            "stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\nCloning into '/tmp/flask-test'...\r\nremote: Enumerating objects: 282, done.\u001b[K\r\nremote: Counting objects:   0% (1/282)\u001b[K\rremote: Counting objects:   1% (3/282)\u001b[K\rremote: Counting objects:   2% (6/282)\u001b[K\rremote: Counting objects:   3% (9/282)\u001b[K\rremote: Counting objects:   4% (12/282)\u001b[K\rremote: Counting objects:   5% (15/282)\u001b[K\rremote: Counting objects:   6% (17/282)\u001b[K\rremote: Counting objects:   7% (20/282)\u001b[K\rremote: Counting objects:   8% (23/282)\u001b[K\rremote: Counting objects:   9% (26/282)\u001b[K\rremote: Counting objects:  10% (29/282)\u001b[K\rremote: Counting objects:  11% (32/282)\u001b[K\rremote: Counting objects:  12% (34/282)\u001b[K\rremote: Counting objects:  13% (37/282)\u001b[K\rremote: Counting objects:  14% (40/282)\u001b[K\rremote: Counting objects:  15% (43/282)\u001b[K\rremote: Counting objects:  16% (46/282)\u001b[K\rremote: Counting objects:  17% (48/282)\u001b[K\rremote: Counting objects:  18% (51/282)\u001b[K\rremote: Counting objects:  19% (54/282)\u001b[K\rremote: Counting objects:  20% (57/282)\u001b[K\rremote: Counting objects:  21% (60/282)\u001b[K\rremote: Counting objects:  22% (63/282)\u001b[K\rremote: Counting objects:  23% (65/282)\u001b[K\rremote: Counting objects:  24% (68/282)\u001b[K\rremote: Counting objects:  25% (71/282)\u001b[K\rremote: Counting objects:  26% (74/282)\u001b[K\rremote: Counting objects:  27% (77/282)\u001b[K\rremote: Counting objects:  28% (79/282)\u001b[K\rremote: Counting objects:  29% (82/282)\u001b[K\rremote: Counting objects:  30% (85/282)\u001b[K\rremote: Counting objects:  31% (88/282)\u001b[K\rremote: Counting objects:  32% (91/282)\u001b[K\rremote: Counting objects:  33% (94/282)\u001b[K\rremote: Counting objects:  34% (96/282)\u001b[K\rremote: Counting objects:  35% (99/282)\u001b[K\rremote: Counting objects:  36% (102/282)\u001b[K\rremote: Counting objects:  37% (105/282)\u001b[K\rremote: Counting objects:  38% (108/282)\u001b[K\rremote: Counting objects:  39% (110/282)\u001b[K\rremote: Counting objects:  40% (113/282)\u001b[K\rremote: Counting objects:  41% (116/282)\u001b[K\rremote: Counting objects:  42% (119/282)\u001b[K\rremote: Counting objects:  43% (122/282)\u001b[K\rremote: Counting objects:  44% (125/282)\u001b[K\rremote: Counting objects:  45% (127/282)\u001b[K\rremote: Counting objects:  46% (130/282)\u001b[K\rremote: Counting objects:  47% (133/282)\u001b[K\rremote: Counting objects:  48% (136/282)\u001b[K\rremote: Counting objects:  49% (139/282)\u001b[K\rremote: Counting objects:  50% (141/282)\u001b[K\rremote: Counting objects:  51% (144/282)\u001b[K\rremote: Counting objects:  52% (147/282)\u001b[K\rremote: Counting objects:  53% (150/282)\u001b[K\rremote: Counting objects:  54% (153/282)\u001b[K\rremote: Counting objects:  55% (156/282)\u001b[K\rremote: Counting objects:  56% (158/282)\u001b[K\rremote: Counting objects:  57% (161/282)\u001b[K\rremote: Counting objects:  58% (164/282)\u001b[K\rremote: Counting objects:  59% (167/282)\u001b[K\rremote: Counting objects:  60% (170/282)\u001b[K\rremote: Counting objects:  61% (173/282)\u001b[K\rremote: Counting objects:  62% (175/282)\u001b[K\rremote: Counting objects:  63% (178/282)\u001b[K\rremote: Counting objects:  64% (181/282)\u001b[K\rremote: Counting objects:  65% (184/282)\u001b[K\rremote: Counting objects:  66% (187/282)\u001b[K\rremote: Counting objects:  67% (189/282)\u001b[K\rremote: Counting objects:  68% (192/282)\u001b[K\rremote: Counting objects:  69% (195/282)\u001b[K\rremote: Counting objects:  70% (198/282)\u001b[K\rremote: Counting objects:  71% (201/282)\u001b[K\rremote: Counting objects:  72% (204/282)\u001b[K\rremote: Counting objects:  73% (206/282)\u001b[K\rremote: Counting objects:  74% (209/282)\u001b[K\rremote: Counting objects:  75% (212/282)\u001b[K\rremote: Counting objects:  76% (215/282)\u001b[K\rremote: Counting objects:  77% (218/282)\u001b[K\rremote: Counting objects:  78% (220/282)\u001b[K\rremote: Counting objects:  79% (223/282)\u001b[K\rremote: Counting objects:  80% (226/282)\u001b[K\rremote: Counting objects:  81% (229/282)\u001b[K\rremote: Counting objects:  82% (232/282)\u001b[K\rremote: Counting objects:  83% (235/282)\u001b[K\rremote: Counting objects:  84% (237/282)\u001b[K\rremote: Counting objects:  85% (240/282)\u001b[K\rremote: Counting objects:  86% (243/282)\u001b[K\rremote: Counting objects:  87% (246/282)\u001b[K\rremote: Counting objects:  88% (249/282)\u001b[K\rremote: Counting objects:  89% (251/282)\u001b[K\rremote: Counting objects:  90% (254/282)\u001b[K\rremote: Counting objects:  91% (257/282)\u001b[K\rremote: Counting objects:  92% (260/282)\u001b[K\rremote: Counting objects:  93% (263/282)\u001b[K\rremote: Counting objects:  94% (266/282)\u001b[K\rremote: Counting objects:  95% (268/282)\u001b[K\rremote: Counting objects:  96% (271/282)\u001b[K\rremote: Counting objects:  97% (274/282)\u001b[K\rremote: Counting objects:  98% (277/282)\u001b[K\rremote: Counting objects:  99% (280/282)\u001b[K\rremote: Counting objects: 100% (282/282)\u001b[K\rremote: Counting objects: 100% (282/282), done.\u001b[K\r\nremote: Compressing objects:   0% (1/248)\u001b[K\rremote: Compressing objects:   1% (3/248)\u001b[K\rremote: Compressing objects:   2% (5/248)\u001b[K\rremote: Compressing objects:   3% (8/248)\u001b[K\rremote: Compressing objects:   4% (10/248)\u001b[K\rremote: Compressing objects:   5% (13/248)\u001b[K\rremote: Compressing objects:   6% (15/248)\u001b[K\rremote: Compressing objects:   7% (18/248)\u001b[K\rremote: Compressing objects:   8% (20/248)\u001b[K\rremote: Compressing objects:   9% (23/248)\u001b[K\rremote: Compressing objects:  10% (25/248)\u001b[K\rremote: Compressing objects:  11% (28/248)\u001b[K\rremote: Compressing objects:  12% (30/248)\u001b[K\rremote: Compressing objects:  13% (33/248)\u001b[K\rremote: Compressing objects:  14% (35/248)\u001b[K\rremote: Compressing objects:  15% (38/248)\u001b[K\rremote: Compressing objects:  16% (40/248)\u001b[K\rremote: Compressing objects:  17% (43/248)\u001b[K\rremote: Compressing objects:  18% (45/248)\u001b[K\rremote: Compressing objects:  19% (48/248)\u001b[K\rremote: Compressing objects:  20% (50/248)\u001b[K\rremote: Compressing objects:  21% (53/248)\u001b[K\rremote: Compressing objects:  22% (55/248)\u001b[K\rremote: Compressing objects:  23% (58/248)\u001b[K\rremote: Compressing objects:  24% (60/248)\u001b[K\rremote: Compressing objects:  25% (62/248)\u001b[K\rremote: Compressing objects:  26% (65/248)\u001b[K\rremote: Compressing objects:  27% (67/248)\u001b[K\rremote: Compressing objects:  28% (70/248)\u001b[K\rremote: Compressing objects:  29% (72/248)\u001b[K\rremote: Compressing objects:  30% (75/248)\u001b[K\rremote: Compressing objects:  31% (77/248)\u001b[K\rremote: Compressing objects:  32% (80/248)\u001b[K\rremote: Compressing objects:  33% (82/248)\u001b[K\rremote: Compressing objects:  34% (85/248)\u001b[K\rremote: Compressing objects:  35% (87/248)\u001b[K\rremote: Compressing objects:  36% (90/248)\u001b[K\rremote: Compressing objects:  37% (92/248)\u001b[K\rremote: Compressing objects:  38% (95/248)\u001b[K\rremote: Compressing objects:  39% (97/248)\u001b[K\rremote: Compressing objects:  40% (100/248)\u001b[K\rremote: Compressing objects:  41% (102/248)\u001b[K\rremote: Compressing objects:  42% (105/248)\u001b[K\rremote: Compressing objects:  43% (107/248)\u001b[K\rremote: Compressing objects:  44% (110/248)\u001b[K\rremote: Compressing objects:  45% (112/248)\u001b[K\rremote: Compressing objects:  46% (115/248)\u001b[K\rremote: Compressing objects:  47% (117/248)\u001b[K\rremote: Compressing objects:  48% (120/248)\u001b[K\rremote: Compressing objects:  49% (122/248)\u001b[K\rremote: Compressing objects:  50% (124/248)\u001b[K\rremote: Compressing objects:  51% (127/248)\u001b[K\rremote: Compressing objects:  52% (129/248)\u001b[K\rremote: Compressing objects:  53% (132/248)\u001b[K\rremote: Compressing objects:  54% (134/248)\u001b[K\rremote: Compressing objects:  55% (137/248)\u001b[K\rremote: Compressing objects:  56% (139/248)\u001b[K\rremote: Compressing objects:  57% (142/248)\u001b[K\rremote: Compressing objects:  58% (144/248)\u001b[K\rremote: Compressing objects:  59% (147/248)\u001b[K\rremote: Compressing objects:  60% (149/248)\u001b[K\rremote: Compressing objects:  61% (152/248)\u001b[K\rremote: Compressing objects:  62% (154/248)\u001b[K\rremote: Compressing objects:  63% (157/248)\u001b[K\rremote: Compressing objects:  64% (159/248)\u001b[K\rremote: Compressing objects:  65% (162/248)\u001b[K\rremote: Compressing objects:  66% (164/248)\u001b[K\rremote: Compressing objects:  67% (167/248)\u001b[K\rremote: Compressing objects:  68% (169/248)\u001b[K\rremote: Compressing objects:  69% (172/248)\u001b[K\rremote: Compressing objects:  70% (174/248)\u001b[K\rremote: Compressing objects:  71% (177/248)\u001b[K\rremote: Compressing objects:  72% (179/248)\u001b[K\rremote: Compressing objects:  73% (182/248)\u001b[K\rremote: Compressing objects:  74% (184/248)\u001b[K\rremote: Compressing objects:  75% (186/248)\u001b[K\rremote: Compressing objects:  76% (189/248)\u001b[K\rremote: Compressing objects:  77% (191/248)\u001b[K\rremote: Compressing objects:  78% (194/248)\u001b[K\rremote: Compressing objects:  79% (196/248)\u001b[K\rremote: Compressing objects:  80% (199/248)\u001b[K\rremote: Compressing objects:  81% (201/248)\u001b[K\rremote: Compressing objects:  82% (204/248)\u001b[K\rremote: Compressing objects:  83% (206/248)\u001b[K\rremote: Compressing objects:  84% (209/248)\u001b[K\rremote: Compressing objects:  85% (211/248)\u001b[K\rremote: Compressing objects:  86% (214/248)\u001b[K\rremote: Compressing objects:  87% (216/248)\u001b[K\rremote: Compressing objects:  88% (219/248)\u001b[K\rremote: Compressing objects:  89% (221/248)\u001b[K\rremote: Compressing objects:  90% (224/248)\u001b[K\rremote: Compressing objects:  91% (226/248)\u001b[K\rremote: Compressing objects:  92% (229/248)\u001b[K\rremote: Compressing objects:  93% (231/248)\u001b[K\rremote: Compressing objects:  94% (234/248)\u001b[K\rremote: Compressing objects:  95% (236/248)\u001b[K\rremote: Compressing objects:  96% (239/248)\u001b[K\rremote: Compressing objects:  97% (241/248)\u001b[K\rremote: Compressing objects:  98% (244/248)\u001b[K\rremote: Compressing objects:  99% (246/248)\u001b[K\rremote: Compressing objects: 100% (248/248)\u001b[K\rremote: Compressing objects: 100% (248/248), done.\u001b[K\r\nReceiving objects:   0% (1/282)\rReceiving objects:   1% (3/282)\rReceiving objects:   2% (6/282)\rReceiving objects:   3% (9/282)\rReceiving objects:   4% (12/282)\rReceiving objects:   5% (15/282)\rReceiving objects:   6% (17/282)\rReceiving objects:   7% (20/282)\rReceiving objects:   8% (23/282)\rReceiving objects:   9% (26/282)\rReceiving objects:  10% (29/282)\rReceiving objects:  11% (32/282)\rReceiving objects:  12% (34/282)\rReceiving objects:  13% (37/282)\rReceiving objects:  14% (40/282)\rReceiving objects:  15% (43/282)\rReceiving objects:  16% (46/282)\rReceiving objects:  17% (48/282)\rReceiving objects:  18% (51/282)\rReceiving objects:  19% (54/282)\rReceiving objects:  20% (57/282)\rReceiving objects:  21% (60/282)\rReceiving objects:  22% (63/282)\rReceiving objects:  23% (65/282)\rReceiving objects:  24% (68/282)\rReceiving objects:  25% (71/282)\rReceiving objects:  26% (74/282)\rReceiving objects:  27% (77/282)\rReceiving objects:  28% (79/282)\rReceiving objects:  29% (82/282)\rReceiving objects:  30% (85/282)\rReceiving objects:  31% (88/282)\rReceiving objects:  32% (91/282)\rReceiving objects:  33% (94/282)\rReceiving objects:  34% (96/282)\rReceiving objects:  35% (99/282)\rReceiving objects:  36% (102/282)\rReceiving objects:  37% (105/282)\rReceiving objects:  38% (108/282)\rReceiving objects:  39% (110/282)\rReceiving objects:  40% (113/282)\rReceiving objects:  41% (116/282)\rReceiving objects:  42% (119/282)\rReceiving objects:  43% (122/282)\rReceiving objects:  44% (125/282)\rReceiving objects:  45% (127/282)\rReceiving objects:  46% (130/282)\rReceiving objects:  47% (133/282)\rReceiving objects:  48% (136/282)\rReceiving objects:  49% (139/282)\rReceiving objects:  50% (141/282)\rReceiving objects:  51% (144/282)\rReceiving objects:  52% (147/282)\rReceiving objects:  53% (150/282)\rReceiving objects:  54% (153/282)\rReceiving objects:  55% (156/282)\rReceiving objects:  56% (158/282)\rReceiving objects:  57% (161/282)\rReceiving objects:  58% (164/282)\rReceiving objects:  59% (167/282)\rReceiving objects:  60% (170/282)\rReceiving objects:  61% (173/282)\rReceiving objects:  62% (175/282)\rReceiving objects:  63% (178/282)\rReceiving objects:  64% (181/282)\rReceiving objects:  65% (184/282)\rReceiving objects:  66% (187/282)\rReceiving objects:  67% (189/282)\rReceiving objects:  68% (192/282)\rReceiving objects:  69% (195/282)\rReceiving objects:  70% (198/282)\rReceiving objects:  71% (201/282)\rReceiving objects:  72% (204/282)\rReceiving objects:  73% (206/282)\rReceiving objects:  74% (209/282)\rReceiving objects:  75% (212/282)\rReceiving objects:  76% (215/282)\rReceiving objects:  77% (218/282)\rReceiving objects:  78% (220/282)\rReceiving objects:  79% (223/282)\rReceiving objects:  80% (226/282)\rReceiving objects:  81% (229/282)\rReceiving objects:  82% (232/282)\rReceiving objects:  83% (235/282)\rReceiving objects:  84% (237/282)\rReceiving objects:  85% (240/282)\rReceiving objects:  86% (243/282)\rReceiving objects:  87% (246/282)\rReceiving objects:  88% (249/282)\rReceiving objects:  89% (251/282)\rReceiving objects:  90% (254/282)\rReceiving objects:  91% (257/282)\rReceiving objects:  92% (260/282)\rReceiving objects:  93% (263/282)\rReceiving objects:  94% (266/282)\rReceiving objects:  95% (268/282)\rReceiving objects:  96% (271/282)\rReceiving objects:  97% (274/282)\rReceiving objects:  98% (277/282)\rReceiving objects:  99% (280/282)\rremote: Total 282 (delta 4), reused 162 (delta 3), pack-reused 0 (from 0)\u001b[K\r\nReceiving objects: 100% (282/282)\rReceiving objects: 100% (282/282), 776.03 KiB | 4.94 MiB/s, done.\r\nResolving deltas:   0% (0/4)\rResolving deltas:  25% (1/4)\rResolving deltas:  50% (2/4)\rResolving deltas:  75% (3/4)\rResolving deltas: 100% (4/4)\rResolving deltas: 100% (4/4), done.\r\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772125963.2836108,
+          "action": "swe/pytest_run",
+          "duration_ms": 2114.3088340759277,
+          "success": true,
+          "details": {
+            "stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\n\u001b[1m========================================================================================= test session starts ==========================================================================================\u001b[0m\r\nplatform linux -- Python 3.10.13, pytest-9.0.2, pluggy-1.6.0 -- /home/codespace/.python/current/bin/python3\r\ncachedir: .pytest_cache\r\nrootdir: /tmp\r\n\u001b[1mcollecting ... \u001b[0m\u001b[1m\rcollected 2 items                                                                                                                                                                                      \u001b[0m\r\n\r\n../../tmp/test_bench.py::test_add \u001b[32mPASSED\u001b[0m\u001b[32m                                                                                                                                                         [ 50%]\u001b[0m\r\n../../tmp/test_bench.py::test_string \u001b[32mPASSED\u001b[0m\u001b[32m                                                                                                                                                      [100%]\u001b[0m\r\n\r\n\u001b[32m========================================================================================== \u001b[32m\u001b[1m2 passed\u001b[0m\u001b[32m in 0.01s\u001b[0m\u001b[32m ===========================================================================================\u001b[0m\r\n",
+            "stderr": "",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772125985.249124,
+          "action": "environment/node_available",
+          "duration_ms": 317.07096099853516,
+          "success": false,
+          "details": {
+            "version": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\nv20.12.1"
+          }
+        },
+        {
+          "timestamp": 1772125985.249174,
+          "action": "environment/npm_install",
+          "duration_ms": 3637.8068923950195,
+          "success": true,
+          "details": {
+            "stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\n\u001b[?25l(\u001b[100;90m\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u001b[0m) \u2826 idealTree:npm-test: \u001b[7msill\u001b[0m \u001b[35midealTree\u001b[0m buildDeps\u001b[0m\u001b[K\r(\u001b[100;90m\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u001b[0m) \u2826 idealTree:npm-test: \u001b[7msill\u001b[0m \u001b[35midealTree\u001b[0m buildDeps\u001b[0m\u001b[K\r(\u001b[100;90m\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u001b[0m) \u280b idealTree:npm-test: \u001b[7msill\u001b[0m \u001b[35midealTree\u001b[0m buildDeps\u001b[0m\u001b[K\r(\u001b[100;90m\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u2802\u001b[0m) \u283c idealTree:npm-test: \u001b[7msill\u001b[0m \u001b[35midealTree\u001b[0m buildDeps\u001b[0m\u001b[K\r(\u001b[100;9",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772125985.249204,
+          "action": "environment/project_clone",
+          "duration_ms": 521.0590362548828,
+          "success": true,
+          "details": {
+            "stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\nCloning into '/tmp/express-test'...\r\nremote: Enumerating objects: 276, done.\u001b[K\r\nremote: Counting objects:   0% (1/276)\u001b[K\rremote: Counting objects:   1% (3/276)\u001b[K\rremote: Counting objects:   2% (6/276)\u001b[K\rremote: Counting objects:   3% (9/276)\u001b[K\rremote: Counting objects:   4% (12/276)\u001b[K\rremote: Counting objects:   5% (14/276)\u001b[K\rremote: Counting objects:   6% (17/276)\u001b[K\rremote: Counting objects:   7% (20/276)\u001b[K\rremote: Count",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772125985.2492101,
+          "action": "environment/multi_step_build",
+          "duration_ms": 13684.550046920776,
+          "success": true,
+          "details": {
+            "stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\n\r\n76 packages are looking for funding\r\n  run `npm fund` for details\r\n\r\nfound 0 vulnerabilities\r\n\r\n> express@5.2.1 test\r\n> mocha --require test/support/env --reporter spec --check-leaks test/ test/acceptance/\r\n\r\n\r\n\r\n  Route\r\n    \u2714 should work without handlers\r\n    \u2714 should not stack overflow with a large sync stack (62ms)\r\n    .all\r\n      \u2714 should add handler\r\n      \u2714 should handle VERBS\r\n      \u2714 should stack\r\n    .VERB\r\n      \u2714 sh",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772125985.249215,
+          "action": "environment/python_venv",
+          "duration_ms": 3804.724931716919,
+          "success": true,
+          "details": {
+            "stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\n\r\n\u001b[1m[\u001b[0m\u001b[34;49mnotice\u001b[0m\u001b[1;39;49m]\u001b[0m\u001b[39;49m A new release of pip is available: \u001b[0m\u001b[31;49m23.0.1\u001b[0m\u001b[39;49m -> \u001b[0m\u001b[32;49m26.0.1\u001b[0m\r\n\u001b[1m[\u001b[0m\u001b[34;49mnotice\u001b[0m\u001b[1;39;49m]\u001b[0m\u001b[39;49m To update, run: \u001b[0m\u001b[32;49mpython3 -m pip install --upgrade pip\u001b[0m\r\n<string>:1: DeprecationWarning: The '__version__' attribute is deprecated and will be removed in Flask 3.2. Use feature detection or 'importlib.metadata.version(\"flask\")' instead.\r\n3.1.3\r\n",
+            "exit_code": 0
+          }
+        },
+        {
+          "timestamp": 1772126003.69916,
+          "action": "performance/agent_spawn",
+          "duration_ms": 2160.19606590271,
+          "success": true,
+          "details": {
+            "agent_spawn_seconds": 2.1602,
+            "create_seconds": 1.8562,
+            "first_exec_seconds": 0.304
+          }
+        },
+        {
+          "timestamp": 1772126003.6991942,
+          "action": "performance/warm_start",
+          "duration_ms": 1.4269351959228516,
+          "success": false,
+          "details": {}
+        },
+        {
+          "timestamp": 1772126003.699199,
+          "action": "performance/file_io_1mb_write",
+          "duration_ms": 1.6698837280273438,
+          "success": false,
+          "details": {}
+        },
+        {
+          "timestamp": 1772126003.699202,
+          "action": "performance/file_io_1mb_read",
+          "duration_ms": 0.03409385681152344,
+          "success": false,
+          "details": {}
+        },
+        {
+          "timestamp": 1772126003.6992059,
+          "action": "performance/file_io_10mb",
+          "duration_ms": 13.025045394897461,
+          "success": false,
+          "details": {}
+        },
+        {
+          "timestamp": 1772126003.69921,
+          "action": "performance/rapid_exec",
+          "duration_ms": 0.13399124145507812,
+          "success": false,
+          "details": {}
+        },
+        {
+          "timestamp": 1772126003.700266,
+          "action": "destroy",
+          "duration_ms": 1.0380744934082031,
+          "success": true,
+          "details": {}
+        }
+      ],
+      "suites_run": [
+        "basic",
+        "competitive",
+        "swe",
+        "environment",
+        "performance",
+        "networking"
+      ],
+      "suite_results": {
+        "basic": [
+          {
+            "name": "execute_hello",
+            "success": true,
+            "duration_seconds": 0.39462995529174805,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          },
+          {
+            "name": "file_io",
+            "success": true,
+            "duration_seconds": 0.13044404983520508,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          }
+        ],
+        "competitive": [
+          {
+            "name": "stdin_piping",
+            "success": true,
+            "duration_seconds": 0.12534189224243164,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "stdin_piping",
+            "capability_supported": true
+          },
+          {
+            "name": "gcc_compilation",
+            "success": true,
+            "duration_seconds": 0.41069698333740234,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "gcc",
+            "capability_supported": true
+          },
+          {
+            "name": "cpp_compilation",
+            "success": true,
+            "duration_seconds": 0.524960994720459,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "gpp",
+            "capability_supported": true
+          },
+          {
+            "name": "python_version",
+            "success": true,
+            "duration_seconds": 0.10989809036254883,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "python3",
+            "capability_supported": true
+          }
+        ],
+        "swe": [
+          {
+            "name": "network_access",
+            "success": true,
+            "duration_seconds": 0.5183758735656738,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "network_access",
+            "capability_supported": true
+          },
+          {
+            "name": "pip_install",
+            "success": true,
+            "duration_seconds": 1.4704318046569824,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "pip_install",
+            "capability_supported": true
+          },
+          {
+            "name": "git_clone",
+            "success": true,
+            "duration_seconds": 0.8206131458282471,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "git_clone",
+            "capability_supported": true
+          },
+          {
+            "name": "pytest_run",
+            "success": true,
+            "duration_seconds": 2.1143088340759277,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "pytest",
+            "capability_supported": true
+          }
+        ],
+        "environment": [
+          {
+            "name": "node_available",
+            "success": false,
+            "duration_seconds": 0.31707096099853516,
+            "tool_calls": 1,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "nodejs",
+            "capability_supported": false
+          },
+          {
+            "name": "npm_install",
+            "success": true,
+            "duration_seconds": 3.6378068923950195,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "npm",
+            "capability_supported": true
+          },
+          {
+            "name": "project_clone",
+            "success": true,
+            "duration_seconds": 0.5210590362548828,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "project_clone",
+            "capability_supported": true
+          },
+          {
+            "name": "multi_step_build",
+            "success": true,
+            "duration_seconds": 13.684550046920776,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "multi_step_build",
+            "capability_supported": true
+          },
+          {
+            "name": "python_venv",
+            "success": true,
+            "duration_seconds": 3.804724931716919,
+            "tool_calls": 1,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "python_venv",
+            "capability_supported": true
+          }
+        ],
+        "performance": [
+          {
+            "name": "agent_spawn",
+            "success": true,
+            "duration_seconds": 2.16019606590271,
+            "tool_calls": 3,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "agent_spawn",
+            "capability_supported": true
+          },
+          {
+            "name": "warm_start",
+            "success": false,
+            "duration_seconds": 0.0014269351959228516,
+            "tool_calls": 1,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "warm_start",
+            "capability_supported": false
+          },
+          {
+            "name": "file_io_1mb_write",
+            "success": false,
+            "duration_seconds": 0.0016698837280273438,
+            "tool_calls": 1,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          },
+          {
+            "name": "file_io_1mb_read",
+            "success": false,
+            "duration_seconds": 3.409385681152344e-05,
+            "tool_calls": 1,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          },
+          {
+            "name": "file_io_10mb",
+            "success": false,
+            "duration_seconds": 0.013025045394897461,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          },
+          {
+            "name": "rapid_exec",
+            "success": false,
+            "duration_seconds": 0.00013399124145507812,
+            "tool_calls": 1,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": null,
+            "capability_supported": null
+          }
+        ],
+        "networking": [
+          {
+            "name": "dns_resolution",
+            "success": true,
+            "duration_seconds": 0.49661803245544434,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "dns_resolution",
+            "capability_supported": true
+          },
+          {
+            "name": "dns_record_types",
+            "success": true,
+            "duration_seconds": 0.15874791145324707,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "dns_records",
+            "capability_supported": true
+          },
+          {
+            "name": "icmp_ping",
+            "success": false,
+            "duration_seconds": 0.16968297958374023,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "icmp_ping",
+            "capability_supported": false
+          },
+          {
+            "name": "tcp_outbound_443",
+            "success": true,
+            "duration_seconds": 0.19003891944885254,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "tcp_outbound",
+            "capability_supported": true
+          },
+          {
+            "name": "tcp_nonstandard_port",
+            "success": true,
+            "duration_seconds": 0.5030362606048584,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "tcp_nonstandard_port",
+            "capability_supported": true
+          },
+          {
+            "name": "udp_outbound",
+            "success": true,
+            "duration_seconds": 0.16303706169128418,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "udp_outbound",
+            "capability_supported": true
+          },
+          {
+            "name": "https_get",
+            "success": true,
+            "duration_seconds": 0.4460759162902832,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "https_outbound",
+            "capability_supported": true
+          },
+          {
+            "name": "http_post",
+            "success": true,
+            "duration_seconds": 0.7922718524932861,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "http_post",
+            "capability_supported": true
+          },
+          {
+            "name": "websocket_connect",
+            "success": false,
+            "duration_seconds": 0.16480398178100586,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "websocket",
+            "capability_supported": false
+          },
+          {
+            "name": "ipv6_connectivity",
+            "success": false,
+            "duration_seconds": 0.15281987190246582,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "ipv6",
+            "capability_supported": false
+          },
+          {
+            "name": "inbound_listen",
+            "success": true,
+            "duration_seconds": 0.352006196975708,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "inbound_listen",
+            "capability_supported": true
+          },
+          {
+            "name": "ssh_outbound",
+            "success": true,
+            "duration_seconds": 0.23260498046875,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "ssh_outbound",
+            "capability_supported": true
+          },
+          {
+            "name": "bandwidth_estimate",
+            "success": false,
+            "duration_seconds": 0.8245131969451904,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "bandwidth",
+            "capability_supported": false
+          },
+          {
+            "name": "concurrent_connections",
+            "success": true,
+            "duration_seconds": 0.22593188285827637,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "concurrent_connections",
+            "capability_supported": true
+          }
+        ]
+      },
+      "capabilities": {
+        "stdin_piping": true,
+        "gcc": true,
+        "gpp": true,
+        "python3": true,
+        "network_access": true,
+        "pip_install": true,
+        "git_clone": true,
+        "pytest": true,
+        "nodejs": false,
+        "npm": true,
+        "project_clone": true,
+        "multi_step_build": true,
+        "python_venv": true,
+        "agent_spawn": true,
+        "warm_start": false,
+        "dns_resolution": true,
+        "dns_records": true,
+        "icmp_ping": false,
+        "tcp_outbound": true,
+        "tcp_nonstandard_port": true,
+        "udp_outbound": true,
+        "https_outbound": true,
+        "http_post": true,
+        "websocket": false,
+        "ipv6": false,
+        "inbound_listen": true,
+        "ssh_outbound": true,
+        "bandwidth": false,
+        "concurrent_connections": true
+      },
+      "capability_score": 0.7931034482758621,
+      "cold_start_seconds": 1.9920709133148193,
+      "warm_start_seconds": null,
+      "agent_spawn_seconds": 2.1602,
+      "file_io_throughput_mbps": null
+    }
+  ]
+}

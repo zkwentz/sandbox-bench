@@ -1168,9 +1168,9 @@
     }).join('');
   }
 
-  // ── Init ───────────────────────────────────────────────────────────
+  // ── Init: fetch per-provider results and merge client-side ────────
   function renderAll() {
-    document.getElementById('run-info').innerHTML = `${DATA.results.length} providers &middot; ${DATA.config.runs} runs each &middot; best-of-N scoring &middot; suites: ${DATA.config.suites.join(', ')}`;
+    document.getElementById('run-info').innerHTML = `${DATA.results.length} providers &middot; best-of-N scoring`;
     renderTabs();
     renderSuiteSummary();
     renderScoreChart();
@@ -1180,12 +1180,27 @@
     renderMethodology();
   }
 
-  fetch('data.json')
-    .then(r => r.json())
-    .then(d => { DATA = d; renderAll(); })
-    .catch(err => {
-      document.getElementById('run-info').innerHTML = '<span style="color:var(--red)">Failed to load data.json: ' + err.message + '</span>';
+  // Fetch each provider's result file in parallel.
+  // CI/CD drops files at results/{provider}.json — the dashboard just
+  // picks up whatever is available.  Missing files = provider pending.
+  const providerKeys = Object.keys(PROVIDER_NAMES);
+  Promise.allSettled(
+    providerKeys.map(key =>
+      fetch('results/' + key + '.json')
+        .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(d => d.results[0])  // each file has { config, results: [one_entry] }
+    )
+  ).then(outcomes => {
+    const results = [];
+    outcomes.forEach((o, i) => {
+      if (o.status === 'fulfilled' && o.value) results.push(o.value);
     });
+    DATA = {
+      config: { providers: results.map(r => r.provider), suites: ['full'], runs: 3 },
+      results: results,
+    };
+    renderAll();
+  });
 
 })();
 </script>
