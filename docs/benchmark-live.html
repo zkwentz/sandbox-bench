@@ -1183,6 +1183,10 @@
   // Fetch each provider's result JSON in parallel.
   // CI/CD drops files at results/{provider}.json — the dashboard
   // picks up whatever is available.  404s are silently ignored.
+  if (location.protocol === 'file:') {
+    document.getElementById('run-info').innerHTML =
+      '<span style="color:var(--yellow)">Local preview requires a server. Run: <code style="background:var(--surface-2);padding:2px 6px;border-radius:4px;">python3 -m http.server -d docs</code> then open <a href="http://localhost:8000/benchmark-live.html" style="color:var(--accent)">localhost:8000</a></span>';
+  }
   Promise.allSettled(
     Object.keys(PROVIDER_NAMES).map(key =>
       fetch('results/' + key + '.json').then(r => {
@@ -1198,7 +1202,7 @@
       config: { providers: results.map(r => r.provider), suites: ['full'], runs: 3 },
       results: results,
     };
-    renderAll();
+    if (results.length > 0) renderAll();
   });
 
 })();
