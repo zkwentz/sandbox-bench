@@ -1,7 +1,7 @@
 {
   "config": {
     "providers": [
-      "e2b"
+      "modal"
     ],
     "suites": [
       "full"
@@ -12,39 +12,42 @@
   },
   "results": [
     {
-      "provider": "e2b",
+      "provider": "modal",
       "success": true,
-      "total_time_seconds": 32.86524987220764,
+      "total_time_seconds": 19.65118384361267,
       "tool_calls": 41,
-      "friction_points": 0,
-      "errors": 0,
-      "error_messages": [],
-      "estimated_cost_usd": 0.003287,
-      "sandbox_cost_usd": 0.003287,
-      "discoverability_score": 4.5,
-      "score": 88.1,
-      "grade": "A",
+      "friction_points": 7,
+      "errors": 2,
+      "error_messages": [
+        "Total length of CMD arguments cannot exceed 65536 bytes (ARG_MAX). Got 1398264 bytes.",
+        "Total length of CMD arguments cannot exceed 65536 bytes (ARG_MAX). Got 13981178 bytes."
+      ],
+      "estimated_cost_usd": 0.003223,
+      "sandbox_cost_usd": 0.003223,
+      "discoverability_score": 3.5,
+      "score": 64.8,
+      "grade": "C",
       "trace": [
         {
-          "timestamp": 1772126006.840069,
+          "timestamp": 1772133837.472129,
           "action": "authenticate",
-          "duration_ms": 1.0080337524414062,
+          "duration_ms": 0.0030994415283203125,
           "success": true,
           "details": {}
         },
         {
-          "timestamp": 1772126006.9909701,
+          "timestamp": 1772133837.6666398,
           "action": "create_sandbox",
-          "duration_ms": 150.8920192718506,
+          "duration_ms": 194.50688362121582,
           "success": true,
           "details": {
-            "sandbox_id": "i6rgyaqb85zqjvonv628f"
+            "sandbox_id": "sb-l2P2Er1OjxWerDMBwHFNKL"
           }
         },
         {
-          "timestamp": 1772126007.599301,
+          "timestamp": 1772133839.545779,
           "action": "basic/execute_hello",
-          "duration_ms": 438.2820129394531,
+          "duration_ms": 1620.0189590454102,
           "success": true,
           "details": {
             "stdout": "Hello from sandbox-bench!\n",
@@ -53,16 +56,16 @@
           }
         },
         {
-          "timestamp": 1772126007.599314,
+          "timestamp": 1772133839.545783,
           "action": "basic/file_io",
-          "duration_ms": 169.96097564697266,
+          "duration_ms": 259.0970993041992,
           "success": true,
           "details": {}
         },
         {
-          "timestamp": 1772126008.930905,
+          "timestamp": 1772133841.2130518,
           "action": "competitive/stdin_piping",
-          "duration_ms": 93.63508224487305,
+          "duration_ms": 195.43910026550293,
           "success": true,
           "details": {
             "stdout": "8\n",
@@ -71,9 +74,9 @@
           }
         },
         {
-          "timestamp": 1772126008.9309142,
+          "timestamp": 1772133841.213056,
           "action": "competitive/gcc_compilation",
-          "duration_ms": 446.5160369873047,
+          "duration_ms": 505.6171417236328,
           "success": true,
           "details": {
             "stdout": "hello-c\n",
@@ -82,9 +85,9 @@
           }
         },
         {
-          "timestamp": 1772126008.930918,
+          "timestamp": 1772133841.213058,
           "action": "competitive/cpp_compilation",
-          "duration_ms": 707.9958915710449,
+          "duration_ms": 813.0900859832764,
           "success": true,
           "details": {
             "stdout": "hello-cpp\n",
@@ -93,18 +96,18 @@
           }
         },
         {
-          "timestamp": 1772126008.930921,
+          "timestamp": 1772133841.2130601,
           "action": "competitive/python_version",
-          "duration_ms": 83.34708213806152,
+          "duration_ms": 153.08403968811035,
           "success": true,
           "details": {
-            "version": "Python 3.11.6"
+            "version": "Python 3.12.6"
           }
         },
         {
-          "timestamp": 1772126015.390048,
+          "timestamp": 1772133847.701856,
           "action": "swe/network_access",
-          "duration_ms": 637.131929397583,
+          "duration_ms": 772.8707790374756,
           "success": true,
           "details": {
             "stdout": "200\n",
@@ -113,156 +116,148 @@
           }
         },
         {
-          "timestamp": 1772126015.39006,
+          "timestamp": 1772133847.701859,
           "action": "swe/pip_install",
-          "duration_ms": 2646.491050720215,
+          "duration_ms": 2047.3647117614746,
           "success": true,
           "details": {
             "stdout": "2.31.0\n",
-            "stderr": "\n[notice] A new release of pip is available: 23.2.1 -> 26.0.1\n[notice] To update, run: pip install --upgrade pip\n",
+            "stderr": "\n[notice] A new release of pip is available: 24.3.1 -> 26.0.1\n[notice] To update, run: pip install --upgrade pip\n",
             "exit_code": 0
           }
         },
         {
-          "timestamp": 1772126015.390069,
+          "timestamp": 1772133847.7018611,
           "action": "swe/git_clone",
-          "duration_ms": 979.1531562805176,
-          "success": true,
+          "duration_ms": 313.8258457183838,
+          "success": false,
           "details": {
-            "stdout": "Cloning into '/tmp/flask-test'...\n",
+            "stdout": "bash: line 1: git: command not found\n",
             "stderr": "",
-            "exit_code": 0
+            "exit_code": 127
           }
         },
         {
-          "timestamp": 1772126015.390075,
+          "timestamp": 1772133847.7018628,
           "action": "swe/pytest_run",
-          "duration_ms": 2196.255922317505,
+          "duration_ms": 3354.686975479126,
           "success": true,
           "details": {
-            "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.11.6, pytest-9.0.2, pluggy-1.6.0 -- /usr/local/bin/python3\ncachedir: .pytest_cache\nrootdir: /tmp\ncollecting ... collected 2 items\n\n../../tmp/test_bench.py::test_add PASSED                                 [ 50%]\n../../tmp/test_bench.py::test_string PASSED                              [100%]\n\n============================== 2 passed in 0.01s ===============================\n",
+            "stdout": "============================= test session starts ==============================\nplatform linux -- Python 3.12.6, pytest-9.0.2, pluggy-1.6.0 -- /usr/local/bin/python3\ncachedir: .pytest_cache\nrootdir: /tmp\ncollecting ... collected 2 items\n\ntmp/test_bench.py::test_add PASSED                                       [ 50%]\ntmp/test_bench.py::test_string PASSED                                    [100%]\n\n============================== 2 passed in 0.01s ===============================\n",
             "stderr": "",
             "exit_code": 0
           }
         },
         {
-          "timestamp": 1772126035.149695,
+          "timestamp": 1772133853.534976,
           "action": "environment/node_available",
-          "duration_ms": 176.3169765472412,
-          "success": true,
+          "duration_ms": 135.36906242370605,
+          "success": false,
           "details": {
-            "version": "v20.9.0"
+            "version": ""
           }
         },
         {
-          "timestamp": 1772126035.1497118,
+          "timestamp": 1772133853.534988,
           "action": "environment/npm_install",
-          "duration_ms": 2593.208074569702,
-          "success": true,
+          "duration_ms": 262.89939880371094,
+          "success": false,
           "details": {
-            "stdout": "\nadded 68 packages, and audited 69 packages in 2s\n\n15 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\nnpm notice \nnpm notice New major version of npm available! 10.1.0 -> 11.11.0\nnpm notice Changelog: <https://github.com/npm/cli/releases/tag/v11.11.0>\nnpm notice Run `npm install -g npm@11.11.0` to update!\nnpm notice \n",
-            "exit_code": 0
+            "stdout": "bash: line 1: npm: command not found\n",
+            "exit_code": 127
           }
         },
         {
-          "timestamp": 1772126035.149717,
+          "timestamp": 1772133853.534993,
           "action": "environment/project_clone",
-          "duration_ms": 701.462984085083,
-          "success": true,
+          "duration_ms": 128.58915328979492,
+          "success": false,
           "details": {
-            "stdout": "Cloning into '/tmp/express-test'...\n",
-            "exit_code": 0
+            "stdout": "bash: line 1: git: command not found\n",
+            "exit_code": 127
           }
         },
         {
-          "timestamp": 1772126035.149722,
+          "timestamp": 1772133853.534998,
           "action": "environment/multi_step_build",
-          "duration_ms": 11698.567867279053,
-          "success": true,
+          "duration_ms": 150.7270336151123,
+          "success": false,
           "details": {
-            "stdout": "\n76 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\n\n> express@5.2.1 test\n> mocha --require test/support/env --reporter spec --check-leaks test/ test/acceptance/\n\n\n\n  Route\n    \u2714 should work without handlers\n    \u2714 should not stack overflow with a large sync stack (69ms)\n    .all\n      \u2714 should add handler\n      \u2714 should handle VERBS\n      \u2714 should stack\n    .VERB\n      \u2714 should support .get\n      \u2714 should limit to just .VERB\n      \u2714 should allow fallthrough",
-            "exit_code": 0
+            "stdout": "",
+            "exit_code": 1
           }
         },
         {
-          "timestamp": 1772126035.149725,
+          "timestamp": 1772133853.535001,
           "action": "environment/python_venv",
-          "duration_ms": 4589.907884597778,
+          "duration_ms": 5155.46178817749,
           "success": true,
           "details": {
-            "stdout": "\n[notice] A new release of pip is available: 23.2.1 -> 26.0.1\n[notice] To update, run: python3 -m pip install --upgrade pip\n3.1.3\n",
+            "stdout": "\n[notice] A new release of pip is available: 24.2 -> 26.0.1\n[notice] To update, run: python3 -m pip install --upgrade pip\n3.1.3\n",
             "exit_code": 0
           }
         },
         {
-          "timestamp": 1772126039.560148,
+          "timestamp": 1772133857.081148,
           "action": "performance/agent_spawn",
-          "duration_ms": 300.4281520843506,
+          "duration_ms": 1395.0068950653076,
           "success": true,
           "details": {
-            "agent_spawn_seconds": 0.3004,
-            "create_seconds": 0.1535,
-            "first_exec_seconds": 0.1469
+            "agent_spawn_seconds": 1.395,
+            "create_seconds": 0.161,
+            "first_exec_seconds": 1.234
           }
         },
         {
-          "timestamp": 1772126039.560152,
+          "timestamp": 1772133857.081155,
           "action": "performance/warm_start",
-          "duration_ms": 164.92295265197754,
+          "duration_ms": 189.38374519348145,
           "success": true,
           "details": {
-            "warm_start_seconds": 0.16492295265197754
+            "warm_start_seconds": 0.18938374519348145
           }
         },
         {
-          "timestamp": 1772126039.5601542,
+          "timestamp": 1772133857.081158,
           "action": "performance/file_io_1mb_write",
-          "duration_ms": 454.14209365844727,
-          "success": true,
-          "details": {
-            "size_mb": 1,
-            "throughput_mbps": 2.2
-          }
+          "duration_ms": 7.075071334838867,
+          "success": false,
+          "details": {}
         },
         {
-          "timestamp": 1772126039.560155,
+          "timestamp": 1772133857.081161,
           "action": "performance/file_io_1mb_read",
-          "duration_ms": 396.57115936279297,
+          "duration_ms": 126.38020515441895,
           "success": true,
           "details": {
-            "size_mb": 1.0,
-            "throughput_mbps": 2.52
+            "size_mb": 0,
+            "throughput_mbps": 0.0
           }
         },
         {
-          "timestamp": 1772126039.5601568,
+          "timestamp": 1772133857.0811641,
           "action": "performance/file_io_10mb",
-          "duration_ms": 1954.7500610351562,
-          "success": true,
-          "details": {
-            "write_mbps": 8.56,
-            "read_mbps": 12.76,
-            "write_seconds": 1.169,
-            "read_seconds": 0.784
-          }
+          "duration_ms": 45.45021057128906,
+          "success": false,
+          "details": {}
         },
         {
-          "timestamp": 1772126039.560159,
+          "timestamp": 1772133857.081168,
           "action": "performance/rapid_exec",
-          "duration_ms": 843.9679145812988,
+          "duration_ms": 1699.280023574829,
           "success": true,
           "details": {
-            "avg_latency_ms": 84.4,
-            "min_latency_ms": 78.8,
-            "max_latency_ms": 92.3,
+            "avg_latency_ms": 169.9,
+            "min_latency_ms": 123.6,
+            "max_latency_ms": 396.2,
             "iterations": 10,
             "failures": 0
           }
         },
         {
-          "timestamp": 1772126039.704277,
+          "timestamp": 1772133857.123302,
           "action": "destroy",
-          "duration_ms": 144.11616325378418,
+          "duration_ms": 42.1290397644043,
           "success": true,
           "details": {}
         }
@@ -280,7 +275,7 @@
           {
             "name": "execute_hello",
             "success": true,
-            "duration_seconds": 0.4382820129394531,
+            "duration_seconds": 1.6200189590454102,
             "tool_calls": 1,
             "friction_points": 0,
             "errors": 0,
@@ -290,7 +285,7 @@
           {
             "name": "file_io",
             "success": true,
-            "duration_seconds": 0.16996097564697266,
+            "duration_seconds": 0.2590970993041992,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -302,7 +297,7 @@
           {
             "name": "stdin_piping",
             "success": true,
-            "duration_seconds": 0.09363508224487305,
+            "duration_seconds": 0.19543910026550293,
             "tool_calls": 1,
             "friction_points": 0,
             "errors": 0,
@@ -312,7 +307,7 @@
           {
             "name": "gcc_compilation",
             "success": true,
-            "duration_seconds": 0.4465160369873047,
+            "duration_seconds": 0.5056171417236328,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -322,7 +317,7 @@
           {
             "name": "cpp_compilation",
             "success": true,
-            "duration_seconds": 0.7079958915710449,
+            "duration_seconds": 0.8130900859832764,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -332,7 +327,7 @@
           {
             "name": "python_version",
             "success": true,
-            "duration_seconds": 0.08334708213806152,
+            "duration_seconds": 0.15308403968811035,
             "tool_calls": 1,
             "friction_points": 0,
             "errors": 0,
@@ -344,7 +339,7 @@
           {
             "name": "network_access",
             "success": true,
-            "duration_seconds": 0.637131929397583,
+            "duration_seconds": 0.7728707790374756,
             "tool_calls": 1,
             "friction_points": 0,
             "errors": 0,
@@ -354,7 +349,7 @@
           {
             "name": "pip_install",
             "success": true,
-            "duration_seconds": 2.646491050720215,
+            "duration_seconds": 2.0473647117614746,
             "tool_calls": 1,
             "friction_points": 0,
             "errors": 0,
@@ -363,18 +358,18 @@
           },
           {
             "name": "git_clone",
-            "success": true,
-            "duration_seconds": 0.9791531562805176,
+            "success": false,
+            "duration_seconds": 0.3138258457183838,
             "tool_calls": 1,
-            "friction_points": 0,
+            "friction_points": 1,
             "errors": 0,
             "capability_tested": "git_clone",
-            "capability_supported": true
+            "capability_supported": false
           },
           {
             "name": "pytest_run",
             "success": true,
-            "duration_seconds": 2.196255922317505,
+            "duration_seconds": 3.354686975479126,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -385,48 +380,48 @@
         "environment": [
           {
             "name": "node_available",
-            "success": true,
-            "duration_seconds": 0.1763169765472412,
+            "success": false,
+            "duration_seconds": 0.13536906242370605,
             "tool_calls": 1,
-            "friction_points": 0,
+            "friction_points": 1,
             "errors": 0,
             "capability_tested": "nodejs",
-            "capability_supported": true
+            "capability_supported": false
           },
           {
             "name": "npm_install",
-            "success": true,
-            "duration_seconds": 2.593208074569702,
+            "success": false,
+            "duration_seconds": 0.26289939880371094,
             "tool_calls": 2,
-            "friction_points": 0,
+            "friction_points": 1,
             "errors": 0,
             "capability_tested": "npm",
-            "capability_supported": true
+            "capability_supported": false
           },
           {
             "name": "project_clone",
-            "success": true,
-            "duration_seconds": 0.701462984085083,
+            "success": false,
+            "duration_seconds": 0.12858915328979492,
             "tool_calls": 1,
-            "friction_points": 0,
+            "friction_points": 1,
             "errors": 0,
             "capability_tested": "project_clone",
-            "capability_supported": true
+            "capability_supported": false
           },
           {
             "name": "multi_step_build",
-            "success": true,
-            "duration_seconds": 11.698567867279053,
+            "success": false,
+            "duration_seconds": 0.1507270336151123,
             "tool_calls": 1,
-            "friction_points": 0,
+            "friction_points": 1,
             "errors": 0,
             "capability_tested": "multi_step_build",
-            "capability_supported": true
+            "capability_supported": false
           },
           {
             "name": "python_venv",
             "success": true,
-            "duration_seconds": 4.589907884597778,
+            "duration_seconds": 5.15546178817749,
             "tool_calls": 1,
             "friction_points": 0,
             "errors": 0,
@@ -438,7 +433,7 @@
           {
             "name": "agent_spawn",
             "success": true,
-            "duration_seconds": 0.3004281520843506,
+            "duration_seconds": 1.3950068950653076,
             "tool_calls": 3,
             "friction_points": 0,
             "errors": 0,
@@ -448,7 +443,7 @@
           {
             "name": "warm_start",
             "success": true,
-            "duration_seconds": 0.16492295265197754,
+            "duration_seconds": 0.18938374519348145,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -457,10 +452,10 @@
           },
           {
             "name": "file_io_1mb_write",
-            "success": true,
-            "duration_seconds": 0.45414209365844727,
+            "success": false,
+            "duration_seconds": 0.007075071334838867,
             "tool_calls": 1,
-            "friction_points": 0,
+            "friction_points": 1,
             "errors": 0,
             "capability_tested": null,
             "capability_supported": null
@@ -468,7 +463,7 @@
           {
             "name": "file_io_1mb_read",
             "success": true,
-            "duration_seconds": 0.39657115936279297,
+            "duration_seconds": 0.12638020515441895,
             "tool_calls": 1,
             "friction_points": 0,
             "errors": 0,
@@ -477,10 +472,10 @@
           },
           {
             "name": "file_io_10mb",
-            "success": true,
-            "duration_seconds": 1.9547500610351562,
+            "success": false,
+            "duration_seconds": 0.04545021057128906,
             "tool_calls": 2,
-            "friction_points": 0,
+            "friction_points": 1,
             "errors": 0,
             "capability_tested": null,
             "capability_supported": null
@@ -488,7 +483,7 @@
           {
             "name": "rapid_exec",
             "success": true,
-            "duration_seconds": 0.8439679145812988,
+            "duration_seconds": 1.699280023574829,
             "tool_calls": 10,
             "friction_points": 0,
             "errors": 0,
@@ -500,7 +495,7 @@
           {
             "name": "dns_resolution",
             "success": true,
-            "duration_seconds": 0.46542882919311523,
+            "duration_seconds": 2.250127077102661,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -510,7 +505,7 @@
           {
             "name": "dns_record_types",
             "success": true,
-            "duration_seconds": 0.20103788375854492,
+            "duration_seconds": 0.6456787586212158,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -520,7 +515,7 @@
           {
             "name": "icmp_ping",
             "success": false,
-            "duration_seconds": 0.22463202476501465,
+            "duration_seconds": 0.6461172103881836,
             "tool_calls": 2,
             "friction_points": 1,
             "errors": 0,
@@ -530,7 +525,7 @@
           {
             "name": "tcp_outbound_443",
             "success": true,
-            "duration_seconds": 0.19002389907836914,
+            "duration_seconds": 0.7143058776855469,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -540,7 +535,7 @@
           {
             "name": "tcp_nonstandard_port",
             "success": true,
-            "duration_seconds": 0.18220901489257812,
+            "duration_seconds": 0.7703511714935303,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -550,7 +545,7 @@
           {
             "name": "udp_outbound",
             "success": true,
-            "duration_seconds": 0.19117116928100586,
+            "duration_seconds": 0.7605202198028564,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -560,7 +555,7 @@
           {
             "name": "https_get",
             "success": true,
-            "duration_seconds": 0.6252541542053223,
+            "duration_seconds": 1.155188798904419,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -570,7 +565,7 @@
           {
             "name": "http_post",
             "success": true,
-            "duration_seconds": 0.739558219909668,
+            "duration_seconds": 1.2186198234558105,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -580,7 +575,7 @@
           {
             "name": "websocket_connect",
             "success": false,
-            "duration_seconds": 0.21876239776611328,
+            "duration_seconds": 0.6529819965362549,
             "tool_calls": 2,
             "friction_points": 1,
             "errors": 0,
@@ -590,7 +585,7 @@
           {
             "name": "ipv6_connectivity",
             "success": false,
-            "duration_seconds": 0.1900930404663086,
+            "duration_seconds": 0.6473970413208008,
             "tool_calls": 2,
             "friction_points": 1,
             "errors": 0,
@@ -600,7 +595,7 @@
           {
             "name": "inbound_listen",
             "success": true,
-            "duration_seconds": 0.38362669944763184,
+            "duration_seconds": 0.8393101692199707,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -610,7 +605,7 @@
           {
             "name": "ssh_outbound",
             "success": true,
-            "duration_seconds": 0.2932140827178955,
+            "duration_seconds": 0.7804172039031982,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -620,7 +615,7 @@
           {
             "name": "bandwidth_estimate",
             "success": false,
-            "duration_seconds": 0.5377700328826904,
+            "duration_seconds": 0.7350928783416748,
             "tool_calls": 2,
             "friction_points": 1,
             "errors": 0,
@@ -630,7 +625,7 @@
           {
             "name": "concurrent_connections",
             "success": true,
-            "duration_seconds": 0.19241118431091309,
+            "duration_seconds": 0.7371912002563477,
             "tool_calls": 2,
             "friction_points": 0,
             "errors": 0,
@@ -646,12 +641,12 @@
         "python3": true,
         "network_access": true,
         "pip_install": true,
-        "git_clone": true,
+        "git_clone": false,
         "pytest": true,
-        "nodejs": true,
-        "npm": true,
-        "project_clone": true,
-        "multi_step_build": true,
+        "nodejs": false,
+        "npm": false,
+        "project_clone": false,
+        "multi_step_build": false,
         "python_venv": true,
         "agent_spawn": true,
         "warm_start": true,
@@ -670,11 +665,11 @@
         "bandwidth": false,
         "concurrent_connections": true
       },
-      "capability_score": 0.8620689655172413,
-      "cold_start_seconds": 0.15089201927185059,
-      "warm_start_seconds": 0.16492295265197754,
-      "agent_spawn_seconds": 0.3004,
-      "file_io_throughput_mbps": 2.2
+      "capability_score": 0.6896551724137931,
+      "cold_start_seconds": 0.19450688362121582,
+      "warm_start_seconds": 0.18938374519348145,
+      "agent_spawn_seconds": 1.395,
+      "file_io_throughput_mbps": null
     }
   ]
 }

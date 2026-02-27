@@ -32,6 +32,21 @@ CAPABILITY_DESCRIPTIONS: Dict[str, str] = {
     "mcp_filesystem": "MCP filesystem server (list/read files)",
     "mcp_network": "MCP fetch server (outbound HTTP via MCP)",
     "mcp_multi": "Multiple MCP servers running concurrently",
+    # Networking
+    "dns_resolution": "DNS A-record resolution",
+    "dns_records": "DNS AAAA (IPv6) record resolution",
+    "icmp_ping": "ICMP echo (ping) to external host",
+    "tcp_outbound": "Raw TCP outbound to port 443",
+    "tcp_nonstandard_port": "TCP outbound to non-standard port",
+    "udp_outbound": "Raw UDP outbound (DNS query)",
+    "https_outbound": "HTTPS GET with TLS verification",
+    "http_post": "HTTP POST with JSON body and echo verification",
+    "websocket": "WebSocket upgrade over TLS",
+    "ipv6": "IPv6 TCP connectivity",
+    "inbound_listen": "Bind and listen on TCP port, self-connect echo",
+    "ssh_outbound": "TCP to SSH port and banner read",
+    "bandwidth": "Download bandwidth estimate (100KB file)",
+    "concurrent_connections": "20 simultaneous TCP connections",
 }
 
 

@@ -259,7 +259,8 @@
         "competitive",
         "swe",
         "environment",
-        "performance"
+        "performance",
+        "networking"
       ],
       "suite_results": {
         "basic": [
@@ -481,6 +482,148 @@
             "capability_tested": null,
             "capability_supported": null
           }
+        ],
+        "networking": [
+          {
+            "name": "dns_resolution",
+            "success": true,
+            "duration_seconds": 0.49661803245544434,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "dns_resolution",
+            "capability_supported": true
+          },
+          {
+            "name": "dns_record_types",
+            "success": true,
+            "duration_seconds": 0.15874791145324707,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "dns_records",
+            "capability_supported": true
+          },
+          {
+            "name": "icmp_ping",
+            "success": false,
+            "duration_seconds": 0.16968297958374023,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "icmp_ping",
+            "capability_supported": false
+          },
+          {
+            "name": "tcp_outbound_443",
+            "success": true,
+            "duration_seconds": 0.19003891944885254,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "tcp_outbound",
+            "capability_supported": true
+          },
+          {
+            "name": "tcp_nonstandard_port",
+            "success": true,
+            "duration_seconds": 0.5030362606048584,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "tcp_nonstandard_port",
+            "capability_supported": true
+          },
+          {
+            "name": "udp_outbound",
+            "success": true,
+            "duration_seconds": 0.16303706169128418,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "udp_outbound",
+            "capability_supported": true
+          },
+          {
+            "name": "https_get",
+            "success": true,
+            "duration_seconds": 0.4460759162902832,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "https_outbound",
+            "capability_supported": true
+          },
+          {
+            "name": "http_post",
+            "success": true,
+            "duration_seconds": 0.7922718524932861,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "http_post",
+            "capability_supported": true
+          },
+          {
+            "name": "websocket_connect",
+            "success": false,
+            "duration_seconds": 0.16480398178100586,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "websocket",
+            "capability_supported": false
+          },
+          {
+            "name": "ipv6_connectivity",
+            "success": false,
+            "duration_seconds": 0.15281987190246582,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "ipv6",
+            "capability_supported": false
+          },
+          {
+            "name": "inbound_listen",
+            "success": true,
+            "duration_seconds": 0.352006196975708,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "inbound_listen",
+            "capability_supported": true
+          },
+          {
+            "name": "ssh_outbound",
+            "success": true,
+            "duration_seconds": 0.23260498046875,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "ssh_outbound",
+            "capability_supported": true
+          },
+          {
+            "name": "bandwidth_estimate",
+            "success": false,
+            "duration_seconds": 0.8245131969451904,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "bandwidth",
+            "capability_supported": false
+          },
+          {
+            "name": "concurrent_connections",
+            "success": true,
+            "duration_seconds": 0.22593188285827637,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "concurrent_connections",
+            "capability_supported": true
+          }
         ]
       },
       "capabilities": {
@@ -498,9 +641,23 @@
         "multi_step_build": true,
         "python_venv": true,
         "agent_spawn": true,
-        "warm_start": false
+        "warm_start": false,
+        "dns_resolution": true,
+        "dns_records": true,
+        "icmp_ping": false,
+        "tcp_outbound": true,
+        "tcp_nonstandard_port": true,
+        "udp_outbound": true,
+        "https_outbound": true,
+        "http_post": true,
+        "websocket": false,
+        "ipv6": false,
+        "inbound_listen": true,
+        "ssh_outbound": true,
+        "bandwidth": false,
+        "concurrent_connections": true
       },
-      "capability_score": 0.8666666666666667,
+      "capability_score": 0.7931034482758621,
       "cold_start_seconds": 1.9920709133148193,
       "warm_start_seconds": null,
       "agent_spawn_seconds": 2.1602,
