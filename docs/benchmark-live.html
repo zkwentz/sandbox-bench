@@ -1168,14 +1168,6 @@
     }).join('');
   }
 
-  // ── Result registration ──────────────────────────────────────────
-  // Each provider's results/{provider}.js calls registerResult() when
-  // loaded via <script> tag.  Works with file:// and GitHub Pages.
-  const _pendingResults = [];
-  window.registerResult = function(d) {
-    if (d && d.results && d.results[0]) _pendingResults.push(d.results[0]);
-  };
-
   // ── Init ───────────────────────────────────────────────────────────
   function renderAll() {
     document.getElementById('run-info').innerHTML = `${DATA.results.length} providers &middot; best-of-N scoring`;
@@ -1188,25 +1180,25 @@
     renderMethodology();
   }
 
-  // Dynamically load each provider's .js file via <script> tags.
-  // CI/CD drops files at results/{provider}.js — the dashboard picks
-  // up whatever is available.  Missing files are silently ignored.
-  const _providerKeys = Object.keys(PROVIDER_NAMES);
-  let _loadCount = 0;
-  _providerKeys.forEach(function(key) {
-    const s = document.createElement('script');
-    s.src = 'results/' + key + '.js';
-    s.onload = s.onerror = function() {
-      _loadCount++;
-      if (_loadCount === _providerKeys.length) {
-        DATA = {
-          config: { providers: _pendingResults.map(r => r.provider), suites: ['full'], runs: 3 },
-          results: _pendingResults,
-        };
-        renderAll();
-      }
+  // Fetch each provider's result JSON in parallel.
+  // CI/CD drops files at results/{provider}.json — the dashboard
+  // picks up whatever is available.  404s are silently ignored.
+  Promise.allSettled(
+    Object.keys(PROVIDER_NAMES).map(key =>
+      fetch('results/' + key + '.json').then(r => {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      }).then(d => d.results[0])
+    )
+  ).then(outcomes => {
+    const results = outcomes
+      .filter(o => o.status === 'fulfilled' && o.value)
+      .map(o => o.value);
+    DATA = {
+      config: { providers: results.map(r => r.provider), suites: ['full'], runs: 3 },
+      results: results,
     };
-    document.head.appendChild(s);
+    renderAll();
   });
 
 })();
