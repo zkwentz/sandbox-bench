@@ -19,6 +19,7 @@ AI agents are the new power users. They don't read your UI — they parse your d
 | [Modal](https://modal.com) | Container | Supported |
 | [CodeSandbox](https://codesandbox.io) | Docker | Supported |
 | [Fly.io Machines](https://fly.io) | Firecracker | Supported |
+| VMVM | microVM (Meta internal) | Supported |
 | Docker Image | Local container | Supported |
 | MicroVM | Local microVM | Supported |
 
@@ -33,6 +34,10 @@ sandbox-bench runs modular test suites inside a single sandbox lifecycle. Pick w
 | **swe** | SWE-bench-style: package install, git, pytest, network | `network_access`, `pip_install`, `git_clone`, `pytest` |
 | **environment** | Complex onramp: Node.js, npm, venv, multi-step builds | `nodejs`, `npm`, `project_clone`, `multi_step_build` |
 | **performance** | Agent spawn latency, warm start, file I/O throughput | `agent_spawn`, `warm_start`, `rapid_exec`, `file_io_10mb` |
+| **networking** | Protocol support: TCP, UDP, HTTPS, WebSocket, SSH, inbound | `tcp_outbound`, `udp_outbound`, `websocket`, `inbound_listen` |
+| **mcp** | MCP tool-use integration | `tool_discovery`, `tool_invocation` |
+| **training_batch** | Concurrent sandbox scaling (256–4096) | `tier1_256`, `tier2_1024`, `tier3_4096` |
+| **agentic_session** | Snapshot/restore for long-running agents | `snapshot`, `destroy_and_restore`, `verify_restore` |
 | **full** | All of the above | — |
 
 Default is `basic` for fast iteration. Use `--suite full` for comprehensive benchmarking.
@@ -118,6 +123,17 @@ Or use a `.env` file:
 ```bash
 sandbox-bench run --all --env-file .env
 ```
+
+### VMVM (Meta internal)
+
+VMVM requires `vacli` on PATH, valid Meta TLS credentials, and a FaaS tenant ID. Set the tenant ID via environment variable:
+
+```bash
+export VMVM_TENANT_ID="your-tenant-id"
+sandbox-bench run -p vmvm
+```
+
+For multi-suite runs with different tenants per suite, copy `.env.meta.example` to `.env.meta` and fill in your values. The helper scripts (`run-vmvm-bench.sh`, `run-vmvm-tier1.sh`) source this file automatically.
 
 ## Adding a Provider
 
