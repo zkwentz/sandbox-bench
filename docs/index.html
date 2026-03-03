@@ -677,9 +677,9 @@
   // ── Data ───────────────────────────────────────────────────────────
   let DATA = null;
 
-  const SUITES = ['overall', 'performance', 'competitive', 'swe', 'environment', 'networking', 'training_batch', 'agentic_session'];
-  const SUITE_LABELS = { overall: 'Overall', performance: 'Performance', basic: 'Basic', competitive: 'Competitive', swe: 'SWE', environment: 'Environment', mcp: 'MCP', networking: 'Networking', training_batch: 'Training Batch', agentic_session: 'Agentic Session' };
-  const INDIVIDUAL_SUITES = ['competitive', 'swe', 'environment', 'performance', 'networking', 'training_batch', 'agentic_session'];
+  const SUITES = ['overall', 'performance', 'competitive', 'swe', 'environment', 'networking'];
+  const SUITE_LABELS = { overall: 'Overall', performance: 'Performance', basic: 'Basic', competitive: 'Competitive', swe: 'SWE', environment: 'Environment', mcp: 'MCP', networking: 'Networking' };
+  const INDIVIDUAL_SUITES = ['competitive', 'swe', 'environment', 'performance', 'networking'];
   const PROVIDER_NAMES = { fly: 'Sprites.dev', e2b: 'E2B', daytona: 'Daytona', codesandbox: 'CodeSandbox', modal: 'Modal', blaxel: 'Blaxel', vmvm: 'VMVM' };
   function pName(r) { return PROVIDER_NAMES[r.provider] || r.provider; }
 
@@ -715,16 +715,6 @@
       useCases: 'Web scraping agents, API integration tasks, network-dependent workflows, security testing.',
       deepDive: '<strong>dns_resolution</strong> &mdash; Resolves an A record via <code>dig</code> or <code>nslookup</code>.<br><br><strong>dns_records</strong> &mdash; Resolves AAAA (IPv6) records to test DNS beyond basic A lookups.<br><br><strong>icmp_ping</strong> &mdash; Sends an ICMP echo request via <code>ping -c 1</code>.<br><br><strong>tcp_outbound</strong> &mdash; Opens a raw TCP socket to port 443 on a public host.<br><br><strong>tcp_nonstandard_port</strong> &mdash; TCP connect to a non-standard port to test if only 80/443 are allowed.<br><br><strong>udp_outbound</strong> &mdash; Sends a raw UDP DNS query to verify UDP is not blocked.<br><br><strong>https_outbound</strong> &mdash; HTTPS GET with full TLS certificate verification.<br><br><strong>http_post</strong> &mdash; HTTP POST with a JSON body and echo verification.<br><br><strong>websocket</strong> &mdash; WebSocket connection over TLS with message exchange.<br><br><strong>ipv6</strong> &mdash; TCP connection attempt over IPv6.<br><br><strong>inbound_listen</strong> &mdash; Binds a TCP listener, connects from within the sandbox, echoes data. Tests inbound port access.<br><br><strong>ssh_outbound</strong> &mdash; Connects to port 22 on a public host and reads the SSH banner.<br><br><strong>bandwidth</strong> &mdash; Downloads a 100KB file and estimates throughput in Mbps.<br><br><strong>concurrent_connections</strong> &mdash; Opens 20 simultaneous TCP connections and verifies all succeed.'
     },
-    training_batch: {
-      summary: 'Stress-tests concurrent sandbox provisioning at scale &mdash; from 256 to 262,144 simultaneous sandboxes &mdash; emulating a training batch where every GPU needs its own isolated environment.',
-      useCases: 'RL training at scale, parallel evaluation, batch code execution, CI/CD at extreme concurrency.',
-      deepDive: 'Each tier creates N sandboxes concurrently using a pool of 500 worker coroutines, verifies each is responsive via <code>echo ready</code>, then destroys all of them.<br><br><strong>Tier 1 (256)</strong> &mdash; Baseline concurrency. Most providers should handle this.<br><strong>Tier 2 (1,024)</strong> &mdash; Medium scale. Tests rate limiting and quota behavior.<br><strong>Tier 3 (8,192)</strong> &mdash; Large scale. Exposes infrastructure bottlenecks.<br><strong>Tier 4 (65,536)</strong> &mdash; Extreme scale. Only purpose-built platforms survive.<br><strong>Tier 5 (262,144)</strong> &mdash; Maximum scale. The full GPU-cluster-sized training batch.<br><br>Cascade rule: if a tier achieves &lt;50% success, all subsequent tiers are skipped. Metrics tracked: sandboxes created, verification pass rate, throughput (sandboxes/sec), and failure mode classification (rate limit, timeout, quota, server error).'
-    },
-    agentic_session: {
-      summary: 'Benchmarks the full snapshot/restore lifecycle: load a sandbox with 2 GiB disk state and 2 GiB RAM, snapshot it, destroy the original, restore from the snapshot, and verify data integrity via MD5 checksum.',
-      useCases: 'Long-running agent sessions, checkpoint/resume workflows, session persistence, stateful agents.',
-      deepDive: '<strong>provision_and_load</strong> &mdash; Writes a 2 GiB file of random data via <code>dd if=/dev/urandom</code>, computes its MD5 checksum, then allocates 2 GiB of RAM via a background Python process holding a <code>bytearray</code>. Measures disk write speed and memory allocation time.<br><br><strong>snapshot</strong> &mdash; Calls the provider\'s snapshot API to capture the full sandbox state (disk + memory). If the provider doesn\'t support snapshots, all remaining phases are skipped gracefully.<br><br><strong>destroy_and_restore</strong> &mdash; Destroys the original sandbox, then restores a new sandbox from the snapshot ID. Measures both destroy and restore latency independently.<br><br><strong>verify_restore</strong> &mdash; Runs <code>md5sum</code> on the restored sandbox and compares against the original checksum. Also checks (best-effort) whether the RAM allocation process survived the snapshot/restore cycle. Reports checksum match, RAM survival, and total wall time.'
-    },
   };
 
   // ── Suite-specific card metrics ──────────────────────────────────
@@ -748,29 +738,6 @@
           {label: 'Agent Spawn', tipKey: 'agent_spawn', value: r.agent_spawn_seconds != null ? formatTime(r.agent_spawn_seconds) : '-'},
           {label: 'File I/O', tipKey: 'file_io_throughput', value: r.file_io_throughput_mbps != null ? r.file_io_throughput_mbps.toFixed(1) + ' MB/s' : '-'},
         ];
-      case 'training_batch': {
-        const tbTraces = (r.trace || []).filter(t => t.action.startsWith('training_batch/'));
-        const tbCreated = tbTraces.reduce((s, t) => s + (t.details.created || 0), 0);
-        const tbRequested = tbTraces.reduce((s, t) => s + (t.details.requested || 0), 0);
-        const peakThroughput = tbTraces.length > 0 ? Math.max(...tbTraces.map(t => t.details.throughput_sandboxes_per_sec || 0)) : 0;
-        return [
-          {label: 'Tests', tipKey: null, value: passed + '/' + total, cls: passed === total ? 'status-pass' : ''},
-          {label: 'Created', tipKey: null, value: tbCreated.toLocaleString() + ' / ' + tbRequested.toLocaleString()},
-          {label: 'Peak Throughput', tipKey: null, value: peakThroughput > 0 ? peakThroughput.toFixed(1) + '/s' : '-'},
-          {label: 'Time', tipKey: 'time', value: formatTime(totalTime)},
-        ];
-      }
-      case 'agentic_session': {
-        const snapTime = getTraceDetail(r, 'agentic_session', 'snapshot', 'snapshot_duration_seconds');
-        const restoreTime = getTraceDetail(r, 'agentic_session', 'destroy_and_restore', 'restore_duration_seconds');
-        const checksumMatch = getTraceDetail(r, 'agentic_session', 'verify_restore', 'checksum_match');
-        return [
-          {label: 'Tests', tipKey: null, value: passed + '/' + total, cls: passed === total ? 'status-pass' : ''},
-          {label: 'Snapshot', tipKey: null, value: snapTime != null ? formatTime(snapTime) : '-'},
-          {label: 'Restore', tipKey: null, value: restoreTime != null ? formatTime(restoreTime) : '-'},
-          {label: 'Checksum', tipKey: null, value: checksumMatch === true ? 'Match' : checksumMatch === false ? 'Mismatch' : '-', cls: checksumMatch === true ? 'status-pass' : checksumMatch === false ? 'status-fail' : ''},
-        ];
-      }
       case 'networking': {
         const bwMbps = getTraceDetail(r, 'networking', 'bandwidth', 'bandwidth_mbps');
         return [
