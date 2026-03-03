@@ -1,6 +1,10 @@
 .env
+.env.meta
 __pycache__
 *.pyc
 venv/
+venv-devvm/
+.DS_Store
+.claude/
 results.json
 !results/*.json
