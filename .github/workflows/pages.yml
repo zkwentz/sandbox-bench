@@ -30,7 +30,7 @@ jobs:
         run: |
           mkdir -p _site
           cp docs/index.html _site/
-          cp -r results _site/results
+          cp -r docs/results _site/results
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
