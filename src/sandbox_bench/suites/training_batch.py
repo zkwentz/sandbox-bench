@@ -13,6 +13,7 @@ per lease would exhaust Python memory.
 import asyncio
 import os
 import random
+import resource
 import sys
 import time
 from collections import defaultdict
@@ -25,6 +26,40 @@ from ..provider import SandboxProvider
 def _log(msg: str) -> None:
     """Flush-safe progress log to stderr."""
     print(f"  [training_batch] {msg}", file=sys.stderr, flush=True)
+
+
+def _tune_system_limits() -> None:
+    """Best-effort raise of OS resource limits before high-concurrency work.
+
+    Prevents client-side bottlenecks (inotify watches, open file descriptors)
+    from polluting benchmark results.  Silently no-ops on macOS / non-root.
+    """
+    # --- Open file descriptors (ulimit -n) ---
+    try:
+        soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+        target = min(hard, 65_536)
+        if soft < target:
+            resource.setrlimit(resource.RLIMIT_NOFILE, (target, hard))
+            _log(f"Raised NOFILE limit: {soft} → {target}")
+    except Exception:
+        pass
+
+    # --- inotify watches & instances (Linux /proc/sys) ---
+    _inotify_targets = [
+        ("/proc/sys/fs/inotify/max_user_watches", "524288"),
+        ("/proc/sys/fs/inotify/max_user_instances", "8192"),
+    ]
+    for path, target_val in _inotify_targets:
+        try:
+            with open(path) as f:
+                current = int(f.read().strip())
+            if current < int(target_val):
+                with open(path, "w") as f:
+                    f.write(target_val)
+                _log(f"Raised {path}: {current} → {target_val}")
+        except Exception:
+            pass  # Not Linux, no permissions, etc.
+
 
 # Tier definitions: (name, batch_size, capability_name)
 ALL_TIERS = [
@@ -83,6 +118,7 @@ class TrainingBatchSuite(TestSuite):
         cascade_failed = False
 
         _log(f"Starting training_batch suite ({len(TIERS)} tiers)")
+        _tune_system_limits()
         for i, (tier_name, batch_size, capability) in enumerate(TIERS, 1):
             if cascade_failed:
                 _log(f"Tier {i}/{len(TIERS)} {tier_name}: SKIPPED (cascade)")
@@ -158,20 +194,22 @@ class TrainingBatchSuite(TestSuite):
                     )
 
         _retried_count = [0]  # track retries for logging
+        _backoff_total = [0.0]  # total seconds spent in retry backoff
+        _provider_times: List[float] = []  # per-create provider call durations (seconds)
 
         async def _create_worker():
             nonlocal create_remaining, failed_count
             while create_remaining > 0:
                 create_remaining -= 1
-                succeeded = False
                 for attempt in range(RESOURCE_RETRY_MAX + 1):
                     try:
+                        t0 = time.monotonic()
                         sid = await asyncio.wait_for(
                             provider.create_sandbox(timeout_seconds=CREATE_TIMEOUT),
                             timeout=CREATE_TIMEOUT,
                         )
+                        _provider_times.append(time.monotonic() - t0)
                         created_ids.append(sid)
-                        succeeded = True
                         break
                     except Exception as e:
                         mode = _classify_error(e)
@@ -180,6 +218,7 @@ class TrainingBatchSuite(TestSuite):
                             # finish and release system resources (inotify watches, fds)
                             backoff = min(RESOURCE_RETRY_BASE * (2 ** attempt) + random.uniform(0, 1), 30)
                             _retried_count[0] += 1
+                            _backoff_total[0] += backoff
                             await asyncio.sleep(backoff)
                             continue
                         # Terminal failure — record and move on
@@ -301,6 +340,17 @@ class TrainingBatchSuite(TestSuite):
         success_rate = created / batch_size if batch_size > 0 else 0.0
         ready_rate = ready_count / batch_size if batch_size > 0 else 0.0
 
+        # Provider-only throughput: exclude client-side retry backoff from the
+        # create window so benchmark results reflect provider performance, not
+        # client resource limits (inotify, fd exhaustion, etc.).
+        backoff_secs = _backoff_total[0]
+        effective_create = max(create_duration - backoff_secs, 0.001)
+        provider_throughput = created / effective_create if created > 0 else 0.0
+        avg_provider_create = (
+            sum(_provider_times) / len(_provider_times)
+            if _provider_times else 0.0
+        )
+
         tier_success = success_rate >= CASCADE_THRESHOLD and ready_rate >= CASCADE_THRESHOLD
         all_perfect = created == batch_size and ready_count == batch_size
 
@@ -323,6 +373,9 @@ class TrainingBatchSuite(TestSuite):
                 "verify_duration_seconds": round(verify_duration, 3),
                 "destroy_duration_seconds": round(destroy_duration, 3),
                 "throughput_sandboxes_per_sec": round(throughput, 2),
+                "provider_throughput_per_sec": round(provider_throughput, 2),
+                "avg_provider_create_seconds": round(avg_provider_create, 4),
+                "client_backoff_seconds": round(backoff_secs, 3),
                 "worker_pool_size": num_create_workers,
                 "resource_retries": _retried_count[0],
             },

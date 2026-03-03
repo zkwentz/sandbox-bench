@@ -1,116 +1,63 @@
-"""Fly.io Machines provider implementation."""
+"""Sprites.dev provider implementation (Fly.io Sprites SDK)."""
 
 from __future__ import annotations
 
-import httpx
+import asyncio
+import uuid
 from typing import Optional
 
 from ..provider import SandboxProvider, ProviderInfo, register_provider
 
 
 class FlyProvider(SandboxProvider):
-    """Fly.io Machines provider (Firecracker-based)."""
+    """Sprites.dev sandbox provider using the official Python SDK."""
 
     name = "fly"
     info = ProviderInfo(
-        name="Fly.io",
-        description="Run apps close to users with Firecracker VMs",
-        docs_url="https://fly.io/docs/machines/api/",
+        name="Sprites.dev",
+        description="Stateful, persistent sandboxes powered by Fly.io",
+        docs_url="https://docs.sprites.dev",
         pricing_url="https://fly.io/pricing",
         mcp_server=False,
         openapi_spec=True,
-        llms_txt=False,
+        llms_txt=True,
     )
 
-    BASE_URL = "https://api.machines.dev/v1"
-
     def __init__(self):
-        self._api_key = None
         self._client = None
-        self._machine_id = None
-        self._app_name = "sandbox-bench"
+        self._sprites: dict[str, object] = {}
 
     async def authenticate(self, api_key: str) -> None:
-        """Authenticate with Fly.io using a Bearer API token."""
-        self._api_key = api_key
-        self._client = httpx.AsyncClient(
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
-            timeout=60.0,
-        )
-        # Validate the token by listing apps
-        resp = await self._client.get(
-            f"{self.BASE_URL}/apps",
-            params={"org_slug": "personal"},
-        )
-        resp.raise_for_status()
+        """Authenticate with Sprites.dev using a SPRITE_TOKEN."""
+        try:
+            from sprites import SpritesClient
+        except ImportError:
+            raise ImportError("sprites-py package required: pip install sprites-py")
+
+        if not api_key:
+            raise ValueError("SPRITE_TOKEN / FLY_API_TOKEN required")
+
+        # SpritesClient is synchronous; create in thread to avoid blocking
+        self._client = await asyncio.to_thread(SpritesClient, api_key)
         self._count_api_call()
 
-    async def _ensure_app(self) -> None:
-        """Create the sandbox-bench app if it doesn't exist."""
-        resp = await self._client.get(f"{self.BASE_URL}/apps/{self._app_name}")
+        # Validate token by listing sprites
+        await asyncio.to_thread(self._client.list_sprites)
         self._count_api_call()
-        if resp.status_code == 404:
-            create_resp = await self._client.post(
-                f"{self.BASE_URL}/apps",
-                json={
-                    "app_name": self._app_name,
-                    "org_slug": "personal",
-                },
-            )
-            self._count_api_call()
-            # 422 means app already exists (race condition), which is fine
-            if create_resp.status_code not in (200, 201, 422):
-                create_resp.raise_for_status()
 
     async def create_sandbox(
         self,
         image: Optional[str] = None,
         timeout_seconds: int = 300,
     ) -> str:
-        """Create a Fly.io machine with the given Docker image."""
-        await self._ensure_app()
+        """Create a new Sprite."""
+        name = f"bench-{uuid.uuid4().hex[:8]}"
 
-        image = image or "python:3.12-slim"
-
-        resp = await self._client.post(
-            f"{self.BASE_URL}/apps/{self._app_name}/machines",
-            json={
-                "config": {
-                    "image": image,
-                    "guest": {
-                        "cpu_kind": "shared",
-                        "cpus": 1,
-                        "memory_mb": 256,
-                    },
-                    "auto_destroy": True,
-                    "init": {
-                        "exec": ["/bin/sleep", "inf"],
-                    },
-                    "restart": {
-                        "policy": "no",
-                    },
-                },
-            },
-        )
-        resp.raise_for_status()
+        sprite = await asyncio.to_thread(self._client.create_sprite, name)
         self._count_api_call()
+        self._sprites[name] = sprite
 
-        data = resp.json()
-        self._machine_id = data["id"]
-
-        # Wait for machine to reach "started" state using the blocking wait endpoint
-        wait_resp = await self._client.get(
-            f"{self.BASE_URL}/apps/{self._app_name}/machines/{self._machine_id}/wait",
-            params={"state": "started", "timeout": 60},
-            timeout=70.0,
-        )
-        wait_resp.raise_for_status()
-        self._count_api_call()
-
-        return self._machine_id
+        return name
 
     async def execute(
         self,
@@ -119,29 +66,46 @@ class FlyProvider(SandboxProvider):
         language: str = "python",
         timeout_seconds: int = 30,
     ) -> tuple[str, str, int]:
-        """Execute code in a Fly.io machine via the exec endpoint."""
+        """Execute code in a Sprite."""
         if language == "python":
-            cmd = f"python3 -c {_shell_quote(code)}"
+            cmd_args = ("python3", "-c", code)
         else:
-            cmd = code
+            cmd_args = ("bash", "-c", code)
 
-        resp = await self._client.post(
-            f"{self.BASE_URL}/apps/{self._app_name}/machines/{sandbox_id}/exec",
-            json={
-                "cmd": cmd,
-                "timeout": min(timeout_seconds, 60),
-            },
-            timeout=timeout_seconds + 10,
-        )
-        resp.raise_for_status()
+        return await self._run_cmd(sandbox_id, cmd_args, timeout_seconds)
+
+    async def execute_command(
+        self,
+        sandbox_id: str,
+        command: str,
+        timeout_seconds: int = 30,
+    ) -> tuple[str, str, int]:
+        """Execute a shell command in a Sprite."""
+        return await self._run_cmd(sandbox_id, ("bash", "-c", command), timeout_seconds)
+
+    async def _run_cmd(
+        self,
+        sandbox_id: str,
+        args: tuple[str, ...],
+        timeout: int,
+    ) -> tuple[str, str, int]:
+        """Run a command and return (stdout, stderr, exit_code)."""
+        sprite = self._get_sprite(sandbox_id)
+
+        def _exec():
+            cmd = sprite.command(*args, timeout=float(timeout))
+            # Capture both stdout and stderr separately
+            cmd._capture_stdout = True
+            cmd._capture_stderr = True
+            # _run_sync sets _started and handles the full lifecycle
+            exit_code = cmd._run_sync()
+            stdout = (cmd._stdout_data or b"").decode("utf-8", errors="replace")
+            stderr = (cmd._stderr_data or b"").decode("utf-8", errors="replace")
+            return (stdout, stderr, exit_code)
+
+        result = await asyncio.to_thread(_exec)
         self._count_api_call()
-
-        data = resp.json()
-        return (
-            data.get("stdout", ""),
-            data.get("stderr", ""),
-            data.get("exit_code", 0),
-        )
+        return result
 
     async def write_file(
         self,
@@ -149,50 +113,57 @@ class FlyProvider(SandboxProvider):
         path: str,
         content: str | bytes,
     ) -> None:
-        """Write file to Fly.io machine via exec."""
-        if isinstance(content, str):
-            content = content.encode()
+        """Write a file to a Sprite using the filesystem API."""
+        sprite = self._get_sprite(sandbox_id)
 
-        import base64
-        b64 = base64.b64encode(content).decode()
+        def _write():
+            fs = sprite.filesystem("/")
+            p = fs.path(path)
+            if isinstance(content, bytes):
+                p.write_bytes(content, mkdir_parents=True)
+            else:
+                p.write_text(content, mkdir_parents=True)
 
-        await self.execute(
-            sandbox_id,
-            f"import base64; open('{path}', 'wb').write(base64.b64decode('{b64}'))",
-            language="python",
-        )
+        await asyncio.to_thread(_write)
+        self._count_api_call()
 
     async def read_file(
         self,
         sandbox_id: str,
         path: str,
     ) -> str | bytes:
-        """Read file from Fly.io machine via exec."""
-        stdout, _, _ = await self.execute(
-            sandbox_id,
-            f"python3 -c \"print(open('{path}').read(), end='')\"",
-            language="sh",
-        )
-        return stdout
+        """Read a file from a Sprite using the filesystem API."""
+        sprite = self._get_sprite(sandbox_id)
+
+        def _read():
+            fs = sprite.filesystem("/")
+            return fs.path(path).read_text()
+
+        result = await asyncio.to_thread(_read)
+        self._count_api_call()
+        return result
 
     async def destroy(self, sandbox_id: str) -> None:
-        """Destroy Fly.io machine."""
-        if self._machine_id and self._client:
+        """Destroy a Sprite."""
+        sprite = self._sprites.pop(sandbox_id, None)
+        if sprite is not None:
             try:
-                await self._client.delete(
-                    f"{self.BASE_URL}/apps/{self._app_name}/machines/{sandbox_id}",
-                    params={"force": "true"},
-                )
+                await asyncio.to_thread(sprite.destroy)
                 self._count_api_call()
             except Exception:
                 pass
-        if self._client:
-            await self._client.aclose()
+        if self._client and not self._sprites:
+            try:
+                await asyncio.to_thread(self._client.close)
+            except Exception:
+                pass
 
-
-def _shell_quote(s: str) -> str:
-    """Quote a string for safe shell usage."""
-    return "'" + s.replace("'", "'\\''") + "'"
+    def _get_sprite(self, sandbox_id: str):
+        """Get a sprite handle by sandbox ID."""
+        sprite = self._sprites.get(sandbox_id)
+        if sprite is None:
+            raise ValueError(f"No sprite found with id: {sandbox_id}")
+        return sprite
 
 
 # Register the provider

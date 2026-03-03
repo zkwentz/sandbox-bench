@@ -1,0 +1,458 @@
+{
+  "config": {
+    "providers": [
+      "vmvm"
+    ],
+    "suites": [
+      "networking"
+    ],
+    "agent_mode": false,
+    "model": "claude-opus-4",
+    "runs": 1
+  },
+  "results": [
+    {
+      "provider": "vmvm",
+      "success": true,
+      "total_time_seconds": 43.10908603668213,
+      "tool_calls": 46,
+      "friction_points": 7,
+      "errors": 0,
+      "error_messages": [],
+      "estimated_cost_usd": 0.0,
+      "sandbox_cost_usd": 0.0,
+      "discoverability_score": 3.5,
+      "score": 64.2,
+      "grade": "C",
+      "trace": [
+        {
+          "timestamp": 1772206269.3868124,
+          "action": "authenticate",
+          "duration_ms": 231.34827613830566,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1772206273.8976693,
+          "action": "create_sandbox",
+          "duration_ms": 4510.846853256226,
+          "success": true,
+          "details": {
+            "sandbox_id": "019c9fb9-a610-70b0-ac0b-785a732eda63"
+          }
+        },
+        {
+          "timestamp": 1772206311.3706732,
+          "action": "networking/dns_resolution",
+          "duration_ms": 5448.782205581665,
+          "success": true,
+          "details": {
+            "stdout": "{\"success\": true, \"addresses\": [\"104.18.27.120\", \"104.18.26.120\"]}\n",
+            "stderr": "",
+            "exit_code": 0,
+            "parsed": {
+              "success": true,
+              "addresses": [
+                "104.18.27.120",
+                "104.18.26.120"
+              ]
+            }
+          }
+        },
+        {
+          "timestamp": 1772206311.3706863,
+          "action": "networking/dns_record_types",
+          "duration_ms": 400.97665786743164,
+          "success": true,
+          "details": {
+            "stdout": "{\"success\": true, \"ipv6_addresses\": [\"2606:4700::6812:1a78\", \"2606:4700::6812:1b78\"]}\n",
+            "stderr": "",
+            "exit_code": 0,
+            "parsed": {
+              "success": true,
+              "ipv6_addresses": [
+                "2606:4700::6812:1a78",
+                "2606:4700::6812:1b78"
+              ]
+            }
+          }
+        },
+        {
+          "timestamp": 1772206311.3706942,
+          "action": "networking/icmp_ping",
+          "duration_ms": 383.23497772216797,
+          "success": false,
+          "details": {
+            "stdout": "{\"success\": false, \"error\": \"ping not found\", \"error_type\": \"not_found\"}\n",
+            "stderr": "",
+            "exit_code": 0,
+            "parsed": {
+              "success": false,
+              "error": "ping not found",
+              "error_type": "not_found"
+            }
+          }
+        },
+        {
+          "timestamp": 1772206311.3707018,
+          "action": "networking/tcp_outbound_443",
+          "duration_ms": 434.86499786376953,
+          "success": true,
+          "details": {
+            "stdout": "{\"success\": true, \"peer\": [\"44.195.71.76\", 443], \"latency_ms\": 67.5}\n",
+            "stderr": "",
+            "exit_code": 0,
+            "parsed": {
+              "success": true,
+              "peer": [
+                "44.195.71.76",
+                443
+              ],
+              "latency_ms": 67.5
+            }
+          }
+        },
+        {
+          "timestamp": 1772206311.3707087,
+          "action": "networking/tcp_nonstandard_port",
+          "duration_ms": 10546.680688858032,
+          "success": false,
+          "details": {
+            "stdout": "{\"success\": false, \"error\": \"connection timed out\", \"error_type\": \"timeout\"}\n",
+            "stderr": "",
+            "exit_code": 0,
+            "parsed": {
+              "success": false,
+              "error": "connection timed out",
+              "error_type": "timeout"
+            }
+          }
+        },
+        {
+          "timestamp": 1772206311.3707156,
+          "action": "networking/udp_outbound",
+          "duration_ms": 5372.883558273315,
+          "success": false,
+          "details": {
+            "stdout": "{\"success\": false, \"error\": \"UDP timed out\", \"error_type\": \"timeout\"}\n",
+            "stderr": "",
+            "exit_code": 0,
+            "parsed": {
+              "success": false,
+              "error": "UDP timed out",
+              "error_type": "timeout"
+            }
+          }
+        },
+        {
+          "timestamp": 1772206311.370723,
+          "action": "networking/https_get",
+          "duration_ms": 866.6884899139404,
+          "success": true,
+          "details": {
+            "stdout": "{\"success\": true, \"status\": 200, \"url\": \"https://httpbin.org/get\", \"latency_ms\": 440.7, \"tls_version\": \"PROTOCOL_TLS\"}\n",
+            "stderr": "",
+            "exit_code": 0,
+            "parsed": {
+              "success": true,
+              "status": 200,
+              "url": "https://httpbin.org/get",
+              "latency_ms": 440.7,
+              "tls_version": "PROTOCOL_TLS"
+            }
+          }
+        },
+        {
+          "timestamp": 1772206311.3707292,
+          "action": "networking/http_post",
+          "duration_ms": 585.7188701629639,
+          "success": true,
+          "details": {
+            "stdout": "{\"success\": true, \"status\": 200, \"echoed_value\": 42, \"latency_ms\": 191.4}\n",
+            "stderr": "",
+            "exit_code": 0,
+            "parsed": {
+              "success": true,
+              "status": 200,
+              "echoed_value": 42,
+              "latency_ms": 191.4
+            }
+          }
+        },
+        {
+          "timestamp": 1772206311.3707361,
+          "action": "networking/websocket_connect",
+          "duration_ms": 424.60012435913086,
+          "success": false,
+          "details": {
+            "stdout": "{\"success\": false, \"error\": \"[Errno -2] Name or service not known\", \"error_type\": \"gaierror\"}\n",
+            "stderr": "",
+            "exit_code": 0,
+            "parsed": {
+              "success": false,
+              "error": "[Errno -2] Name or service not known",
+              "error_type": "gaierror"
+            }
+          }
+        },
+        {
+          "timestamp": 1772206311.370742,
+          "action": "networking/ipv6_connectivity",
+          "duration_ms": 381.35433197021484,
+          "success": false,
+          "details": {
+            "stdout": "{\"success\": false, \"error\": \"[Errno 101] Network is unreachable\", \"error_type\": \"os_error\"}\n",
+            "stderr": "",
+            "exit_code": 0,
+            "parsed": {
+              "success": false,
+              "error": "[Errno 101] Network is unreachable",
+              "error_type": "os_error"
+            }
+          }
+        },
+        {
+          "timestamp": 1772206311.3707478,
+          "action": "networking/inbound_listen",
+          "duration_ms": 567.4722194671631,
+          "success": true,
+          "details": {
+            "stdout": "{\"success\": true, \"echoed\": \"hello-sandbox-bench\"}\n",
+            "stderr": "",
+            "exit_code": 0,
+            "parsed": {
+              "success": true,
+              "echoed": "hello-sandbox-bench"
+            }
+          }
+        },
+        {
+          "timestamp": 1772206311.3707538,
+          "action": "networking/ssh_outbound",
+          "duration_ms": 10428.171157836914,
+          "success": false,
+          "details": {
+            "stdout": "{\"success\": false, \"error\": \"connection timed out\", \"error_type\": \"timeout\"}\n",
+            "stderr": "",
+            "exit_code": 0,
+            "parsed": {
+              "success": false,
+              "error": "connection timed out",
+              "error_type": "timeout"
+            }
+          }
+        },
+        {
+          "timestamp": 1772206311.370761,
+          "action": "networking/bandwidth_estimate",
+          "duration_ms": 1173.2099056243896,
+          "success": false,
+          "details": {
+            "stdout": "{\"success\": false, \"error\": \"<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1147)>\", \"error_type\": \"URLError\"}\n",
+            "stderr": "",
+            "exit_code": 0,
+            "parsed": {
+              "success": false,
+              "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: certificate has expired (_ssl.c:1147)>",
+              "error_type": "URLError"
+            }
+          }
+        },
+        {
+          "timestamp": 1772206311.3707664,
+          "action": "networking/concurrent_connections",
+          "duration_ms": 458.12463760375977,
+          "success": true,
+          "details": {
+            "stdout": "{\"success\": true, \"total\": 20, \"successes\": 20, \"failures\": 0, \"failure_samples\": [], \"elapsed_seconds\": 0.005}\n",
+            "stderr": "",
+            "exit_code": 0,
+            "parsed": {
+              "success": true,
+              "total": 20,
+              "successes": 20,
+              "failures": 0,
+              "failure_samples": [],
+              "elapsed_seconds": 0.005
+            }
+          }
+        },
+        {
+          "timestamp": 1772206312.2645316,
+          "action": "destroy",
+          "duration_ms": 893.7535285949707,
+          "success": true,
+          "details": {}
+        }
+      ],
+      "suites_run": [
+        "networking"
+      ],
+      "suite_results": {
+        "networking": [
+          {
+            "name": "dns_resolution",
+            "success": true,
+            "duration_seconds": 5.448782205581665,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "dns_resolution",
+            "capability_supported": true
+          },
+          {
+            "name": "dns_record_types",
+            "success": true,
+            "duration_seconds": 0.40097665786743164,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "dns_records",
+            "capability_supported": true
+          },
+          {
+            "name": "icmp_ping",
+            "success": false,
+            "duration_seconds": 0.38323497772216797,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "icmp_ping",
+            "capability_supported": false
+          },
+          {
+            "name": "tcp_outbound_443",
+            "success": true,
+            "duration_seconds": 0.43486499786376953,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "tcp_outbound",
+            "capability_supported": true
+          },
+          {
+            "name": "tcp_nonstandard_port",
+            "success": false,
+            "duration_seconds": 10.546680688858032,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "tcp_nonstandard_port",
+            "capability_supported": false
+          },
+          {
+            "name": "udp_outbound",
+            "success": false,
+            "duration_seconds": 5.372883558273315,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "udp_outbound",
+            "capability_supported": false
+          },
+          {
+            "name": "https_get",
+            "success": true,
+            "duration_seconds": 0.8666884899139404,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "https_outbound",
+            "capability_supported": true
+          },
+          {
+            "name": "http_post",
+            "success": true,
+            "duration_seconds": 0.5857188701629639,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "http_post",
+            "capability_supported": true
+          },
+          {
+            "name": "websocket_connect",
+            "success": false,
+            "duration_seconds": 0.42460012435913086,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "websocket",
+            "capability_supported": false
+          },
+          {
+            "name": "ipv6_connectivity",
+            "success": false,
+            "duration_seconds": 0.38135433197021484,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "ipv6",
+            "capability_supported": false
+          },
+          {
+            "name": "inbound_listen",
+            "success": true,
+            "duration_seconds": 0.5674722194671631,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "inbound_listen",
+            "capability_supported": true
+          },
+          {
+            "name": "ssh_outbound",
+            "success": false,
+            "duration_seconds": 10.428171157836914,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "ssh_outbound",
+            "capability_supported": false
+          },
+          {
+            "name": "bandwidth_estimate",
+            "success": false,
+            "duration_seconds": 1.1732099056243896,
+            "tool_calls": 2,
+            "friction_points": 1,
+            "errors": 0,
+            "capability_tested": "bandwidth",
+            "capability_supported": false
+          },
+          {
+            "name": "concurrent_connections",
+            "success": true,
+            "duration_seconds": 0.45812463760375977,
+            "tool_calls": 2,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "concurrent_connections",
+            "capability_supported": true
+          }
+        ]
+      },
+      "capabilities": {
+        "dns_resolution": true,
+        "dns_records": true,
+        "icmp_ping": false,
+        "tcp_outbound": true,
+        "tcp_nonstandard_port": false,
+        "udp_outbound": false,
+        "https_outbound": true,
+        "http_post": true,
+        "websocket": false,
+        "ipv6": false,
+        "inbound_listen": true,
+        "ssh_outbound": false,
+        "bandwidth": false,
+        "concurrent_connections": true
+      },
+      "capability_score": 0.5,
+      "cold_start_seconds": 4.510846853256226,
+      "warm_start_seconds": null,
+      "agent_spawn_seconds": null,
+      "file_io_throughput_mbps": null
+    }
+  ]
+}

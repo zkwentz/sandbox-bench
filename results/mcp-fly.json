@@ -1,0 +1,59 @@
+{
+  "config": {
+    "providers": [
+      "fly"
+    ],
+    "suites": [
+      "mcp"
+    ],
+    "agent_mode": false,
+    "model": "claude-opus-4",
+    "runs": 1
+  },
+  "results": [
+    {
+      "provider": "fly",
+      "success": false,
+      "total_time_seconds": 30.23449206352234,
+      "tool_calls": 2,
+      "friction_points": 0,
+      "errors": 1,
+      "error_messages": [
+        "Create failed: Failed create sprite (status 500): Internal Server Error"
+      ],
+      "estimated_cost_usd": 0.000287,
+      "sandbox_cost_usd": 0.000287,
+      "discoverability_score": 4.0,
+      "score": 0.0,
+      "grade": "F",
+      "trace": [
+        {
+          "timestamp": 1772140178.73123,
+          "action": "authenticate",
+          "duration_ms": 61.20777130126953,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1772140208.9044878,
+          "action": "create_sandbox",
+          "duration_ms": 30173.216819763184,
+          "success": false,
+          "details": {
+            "error": "Failed create sprite (status 500): Internal Server Error"
+          }
+        }
+      ],
+      "suites_run": [
+        "mcp"
+      ],
+      "suite_results": {},
+      "capabilities": {},
+      "capability_score": 0.0,
+      "cold_start_seconds": 30.173216819763184,
+      "warm_start_seconds": null,
+      "agent_spawn_seconds": null,
+      "file_io_throughput_mbps": null
+    }
+  ]
+}

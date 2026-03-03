@@ -1,0 +1,169 @@
+{
+  "config": {
+    "providers": [
+      "vmvm"
+    ],
+    "suites": [
+      "training_batch"
+    ],
+    "agent_mode": false,
+    "model": "claude-opus-4",
+    "runs": 1
+  },
+  "results": [
+    {
+      "provider": "vmvm",
+      "success": true,
+      "total_time_seconds": 153.40548706054688,
+      "tool_calls": 11028,
+      "friction_points": 3,
+      "errors": 0,
+      "error_messages": [],
+      "estimated_cost_usd": 0.0,
+      "sandbox_cost_usd": 0.0,
+      "discoverability_score": 3.5,
+      "score": 61.9,
+      "grade": "C",
+      "trace": [
+        {
+          "timestamp": 1772206438.392399,
+          "action": "authenticate",
+          "duration_ms": 446.00558280944824,
+          "success": true,
+          "details": {}
+        },
+        {
+          "timestamp": 1772206439.913609,
+          "action": "create_sandbox",
+          "duration_ms": 1521.1989879608154,
+          "success": true,
+          "details": {
+            "sandbox_id": "019c9fbc-0383-76c2-9a83-ec75ac7c8f9c"
+          }
+        },
+        {
+          "timestamp": 1772206590.9364865,
+          "action": "training_batch/tier_1_256",
+          "duration_ms": 8146.437644958496,
+          "success": true,
+          "details": {
+            "requested": 256,
+            "created": 256,
+            "ready": 256,
+            "failed": 0,
+            "failure_modes": {},
+            "failure_samples": [],
+            "create_duration_seconds": 4.897,
+            "verify_duration_seconds": 0.996,
+            "destroy_duration_seconds": 2.254,
+            "throughput_sandboxes_per_sec": 52.28,
+            "worker_pool_size": 256
+          }
+        },
+        {
+          "timestamp": 1772206590.936499,
+          "action": "training_batch/tier_2_1024",
+          "duration_ms": 32505.913972854614,
+          "success": true,
+          "details": {
+            "requested": 1024,
+            "created": 1024,
+            "ready": 1024,
+            "failed": 0,
+            "failure_modes": {},
+            "failure_samples": [],
+            "create_duration_seconds": 20.103,
+            "verify_duration_seconds": 3.692,
+            "destroy_duration_seconds": 8.709,
+            "throughput_sandboxes_per_sec": 50.94,
+            "worker_pool_size": 500
+          }
+        },
+        {
+          "timestamp": 1772206590.9365056,
+          "action": "training_batch/tier_3_8192",
+          "duration_ms": 110367.8605556488,
+          "success": false,
+          "details": {
+            "requested": 8192,
+            "created": 1476,
+            "ready": 1476,
+            "failed": 6716,
+            "failure_modes": {
+              "unknown": 6232,
+              "server_error": 116,
+              "auth_error": 325,
+              "rate_limit": 43
+            },
+            "failure_samples": [
+              "vacli exited unexpectedly (code 1): E0227 07:35:00.234328 3727207 Core.cpp:103] Exception while refreshing Observer: std::runtime_error: Failed to initialize inotify\n",
+              "vacli exited unexpectedly (code 1): E0227 07:35:00.302246 3727554 Core.cpp:103] Exception while refreshing Observer: std::runtime_error: Failed to initialize inotify\n",
+              "vacli exited unexpectedly (code 1): E0227 07:35:00.290706 3727560 Core.cpp:103] Exception while refreshing Observer: std::runtime_error: Failed to initialize inotify\n",
+              "vacli exited unexpectedly (code 1): E0227 07:35:00.327648 3727562 Core.cpp:103] Exception while refreshing Observer: std::runtime_error: Failed to initialize inotify\n",
+              "vacli exited unexpectedly (code 1): E0227 07:35:00.314416 3727564 Core.cpp:103] Exception while refreshing Observer: std::runtime_error: Failed to initialize inotify\n"
+            ],
+            "create_duration_seconds": 91.318,
+            "verify_duration_seconds": 5.317,
+            "destroy_duration_seconds": 13.733,
+            "throughput_sandboxes_per_sec": 16.16,
+            "worker_pool_size": 500
+          }
+        },
+        {
+          "timestamp": 1772206591.3518665,
+          "action": "destroy",
+          "duration_ms": 415.35234451293945,
+          "success": true,
+          "details": {}
+        }
+      ],
+      "suites_run": [
+        "training_batch"
+      ],
+      "suite_results": {
+        "training_batch": [
+          {
+            "name": "tier_1_256",
+            "success": true,
+            "duration_seconds": 8.146437644958496,
+            "tool_calls": 768,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "batch_256",
+            "capability_supported": true
+          },
+          {
+            "name": "tier_2_1024",
+            "success": true,
+            "duration_seconds": 32.505913972854614,
+            "tool_calls": 3072,
+            "friction_points": 0,
+            "errors": 0,
+            "capability_tested": "batch_1024",
+            "capability_supported": true
+          },
+          {
+            "name": "tier_3_8192",
+            "success": false,
+            "duration_seconds": 110.3678605556488,
+            "tool_calls": 4428,
+            "friction_points": 3,
+            "errors": 0,
+            "capability_tested": "batch_8192",
+            "capability_supported": false
+          }
+        ]
+      },
+      "capabilities": {
+        "batch_256": true,
+        "batch_1024": true,
+        "batch_8192": false
+      },
+      "capability_score": 0.6666666666666666,
+      "cold_start_seconds": 1.5211989879608154,
+      "warm_start_seconds": null,
+      "agent_spawn_seconds": null,
+      "file_io_throughput_mbps": null
+    }
+  ]
+}

@@ -1,0 +1,1564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sandbox-bench | AI Agent Sandbox Provider Benchmarks</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface-2: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-hover: #79c0ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --orange: #db6d28;
+    --red: #f85149;
+    --grade-a: #3fb950;
+    --grade-b: #58a6ff;
+    --grade-c: #d29922;
+    --grade-d: #db6d28;
+    --grade-f: #f85149;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Header */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 32px 0;
+  }
+
+  header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .logo:hover .logo-icon {
+    transform: scale(1.05);
+  }
+
+  .logo:hover h1 {
+    background: linear-gradient(135deg, var(--accent), #a371f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent), #a371f7);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+    transition: transform 0.2s;
+  }
+
+  .logo h1 {
+    font-size: 24px;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--text), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .logo p {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  /* GitHub corner ribbon */
+  .github-corner svg {
+    fill: var(--accent);
+    color: var(--bg);
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 1000;
+    border: 0;
+  }
+
+  .github-corner:hover .octo-arm {
+    animation: octocat-wave 560ms ease-in-out;
+  }
+
+  @keyframes octocat-wave {
+    0%, 100% { transform: rotate(0); }
+    20%, 60% { transform: rotate(-25deg); }
+    40%, 80% { transform: rotate(10deg); }
+  }
+
+  .header-links {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .header-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+
+  .header-links a:hover {
+    color: var(--text);
+    border-color: var(--text-muted);
+  }
+
+  /* Date Selector */
+  .controls {
+    padding: 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .date-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .date-selector label {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .date-selector select {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .run-info {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Leaderboard */
+  .section {
+    margin-bottom: 48px;
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title .icon {
+    font-size: 18px;
+  }
+
+  /* Provider Cards */
+  .leaderboard {
+    display: grid;
+    gap: 12px;
+  }
+
+  .provider-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: 20px;
+    transition: border-color 0.2s;
+    cursor: pointer;
+  }
+
+  .provider-card:hover {
+    border-color: var(--accent);
+  }
+
+  .provider-card.failed {
+    opacity: 0.5;
+  }
+
+  .rank {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .provider-card:nth-child(1) .rank { color: #ffd700; }
+  .provider-card:nth-child(2) .rank { color: #c0c0c0; }
+  .provider-card:nth-child(3) .rank { color: #cd7f32; }
+
+  .provider-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .provider-name-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .provider-name {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .grade-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 16px;
+    color: white;
+  }
+
+  .grade-A { background: var(--grade-a); }
+  .grade-B { background: var(--grade-b); }
+  .grade-C { background: var(--grade-c); }
+  .grade-D { background: var(--grade-d); }
+  .grade-F { background: var(--grade-f); }
+
+  .provider-metrics {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .metric {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .metric-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+
+  .metric-value {
+    font-size: 15px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .score-display {
+    text-align: center;
+    min-width: 80px;
+  }
+
+  .score-number {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .score-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  /* Comparison Chart */
+  .chart-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .chart-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 60px;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .chart-provider {
+    font-size: 14px;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .chart-bar-container {
+    height: 32px;
+    background: var(--surface-2);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .chart-bar {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    min-width: 2px;
+  }
+
+  .chart-bar.grade-A { background: linear-gradient(90deg, var(--grade-a), #56d364); }
+  .chart-bar.grade-B { background: linear-gradient(90deg, var(--grade-b), var(--accent-hover)); }
+  .chart-bar.grade-C { background: linear-gradient(90deg, var(--grade-c), #e3b341); }
+  .chart-bar.grade-D { background: linear-gradient(90deg, var(--grade-d), #e09b5a); }
+  .chart-bar.grade-F { background: linear-gradient(90deg, var(--grade-f), #ff7b72); }
+
+  .chart-score {
+    font-size: 14px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Breakdown Table */
+  .breakdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .breakdown-table th,
+  .breakdown-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .breakdown-table th {
+    background: var(--surface-2);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .breakdown-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .breakdown-table td {
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .breakdown-table .provider-cell {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mini-grade {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 12px;
+    color: white;
+  }
+
+  .status-pass {
+    color: var(--green);
+  }
+
+  .status-fail {
+    color: var(--red);
+  }
+
+  /* Trace Timeline */
+  .trace-section {
+    margin-top: 12px;
+    padding: 16px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    display: none;
+  }
+
+  .trace-section.active {
+    display: block;
+  }
+
+  .trace-timeline {
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    height: 80px;
+    padding: 8px 0;
+  }
+
+  .trace-step {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .trace-bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    min-height: 4px;
+    transition: height 0.3s;
+  }
+
+  .trace-bar.success { background: var(--green); }
+  .trace-bar.failure { background: var(--red); }
+
+  .trace-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .trace-duration {
+    font-size: 11px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Capabilities Matrix */
+  .cap-matrix {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .cap-matrix th,
+  .cap-matrix td {
+    padding: 10px 14px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .cap-matrix th {
+    background: var(--surface-2);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .cap-matrix th:first-child,
+  .cap-matrix td:first-child {
+    text-align: left;
+    font-weight: 600;
+  }
+
+  .cap-matrix tr:last-child td {
+    border-bottom: none;
+  }
+
+  .cap-yes { color: var(--green); font-weight: 700; }
+  .cap-no { color: var(--red); font-weight: 700; }
+  .cap-na { color: var(--text-muted); }
+
+  /* Performance Bars */
+  .perf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .perf-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .perf-card h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .perf-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .perf-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 60px;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .perf-label {
+    font-size: 13px;
+    font-weight: 500;
+    text-align: right;
+  }
+
+  .perf-bar-track {
+    height: 20px;
+    background: var(--surface-2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .perf-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--accent);
+    transition: width 0.6s ease;
+  }
+
+  .perf-value {
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Scoring Methodology */
+  .methodology {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .weight-bars {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .weight-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .weight-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+  }
+
+  .weight-name { font-weight: 500; }
+  .weight-pct { color: var(--text-muted); }
+
+  .weight-track {
+    height: 6px;
+    background: var(--surface-2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .weight-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--accent);
+  }
+
+  /* Footer */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    margin-top: 48px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  footer a:hover {
+    text-decoration: underline;
+  }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 64px 0;
+    color: var(--text-muted);
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .provider-card {
+      grid-template-columns: 36px 1fr;
+      gap: 12px;
+    }
+
+    .score-display {
+      grid-column: 1 / -1;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .score-number { font-size: 24px; }
+
+    .provider-metrics { gap: 12px; }
+
+    .chart-row {
+      grid-template-columns: 80px 1fr 50px;
+    }
+
+    .breakdown-table {
+      display: block;
+      overflow-x: auto;
+    }
+
+    .cap-matrix {
+      display: block;
+      overflow-x: auto;
+    }
+
+    .header-links { display: none; }
+  }
+
+  /* Error tooltip */
+  .error-tooltip {
+    position: relative;
+    cursor: help;
+  }
+
+  .error-tooltip:hover::after {
+    content: attr(data-error);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 10;
+  }
+
+  /* Info tooltips */
+  .tip {
+    position: relative;
+    cursor: help;
+    border-bottom: 1px dotted var(--text-muted);
+  }
+
+  /* Tooltip bubble - rendered as fixed position via JS to avoid overflow clipping */
+  .tip-bubble {
+    display: none;
+    position: fixed;
+    background: #1c2028;
+    border: 1px solid var(--border);
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text);
+    width: 320px;
+    max-width: 90vw;
+    z-index: 10000;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    pointer-events: none;
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+  }
+
+  .tip-bubble .tip-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--accent);
+    font-size: 12px;
+  }
+
+  .tip-bubble .tip-why {
+    color: var(--text-muted);
+    font-size: 11px;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+  }
+
+  .tip-bubble .tip-why strong {
+    color: var(--yellow);
+  }
+
+  .tip-bubble.visible {
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<a href="https://github.com/zkwentz/sandbox-bench" class="github-corner" aria-label="View source on GitHub"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin:130px 106px" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.2,141.5 141.2,141.5 L115.0,115.0 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<header>
+  <div class="container">
+    <a href="https://github.com/zkwentz/sandbox-bench" class="logo">
+      <div class="logo-icon">sb</div>
+      <div>
+        <h1>sandbox-bench</h1>
+        <p>AI Agent Sandbox Provider Benchmarks</p>
+      </div>
+    </a>
+    <div class="header-links">
+      <a href="https://github.com/zkwentz/sandbox-bench">GitHub</a>
+      <a href="#methodology">Methodology</a>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="controls">
+    <div class="date-selector">
+      <label for="date-select">Benchmark run:</label>
+      <select id="date-select"></select>
+    </div>
+    <div class="run-info" id="run-info"></div>
+  </div>
+
+  <!-- Score Chart -->
+  <div class="section">
+    <h2 class="section-title">Overall Scores</h2>
+    <div class="chart-container">
+      <div class="bar-chart" id="score-chart"></div>
+    </div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div class="section">
+    <h2 class="section-title">Leaderboard</h2>
+    <div class="leaderboard" id="leaderboard"></div>
+  </div>
+
+  <!-- Detailed Breakdown -->
+  <div class="section">
+    <h2 class="section-title">Detailed Breakdown</h2>
+    <table class="breakdown-table">
+      <thead>
+        <tr>
+          <th>Provider</th>
+          <th>Status</th>
+          <th>Time</th>
+          <th>API Calls</th>
+          <th>Friction</th>
+          <th>Errors</th>
+          <th>Sandbox Cost</th>
+          <th>Discoverability</th>
+          <th>Score</th>
+          <th>Grade</th>
+        </tr>
+      </thead>
+      <tbody id="breakdown-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Capabilities Matrix -->
+  <div class="section" id="capabilities-section" style="display:none">
+    <h2 class="section-title">Capabilities Matrix</h2>
+    <div class="chart-container" style="overflow-x:auto">
+      <table class="cap-matrix" id="cap-matrix"></table>
+    </div>
+  </div>
+
+  <!-- Performance Metrics -->
+  <div class="section" id="performance-section" style="display:none">
+    <h2 class="section-title">Performance Metrics</h2>
+    <div class="perf-grid" id="perf-grid"></div>
+  </div>
+
+  <!-- Phase Timings -->
+  <div class="section">
+    <h2 class="section-title">Phase Timings</h2>
+    <div class="chart-container" id="phase-chart-container" style="overflow-x:auto">
+      <table class="breakdown-table" id="phase-table">
+        <thead id="phase-head"></thead>
+        <tbody id="phase-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Methodology -->
+  <div class="section" id="methodology">
+    <h2 class="section-title">Scoring Methodology</h2>
+    <div class="methodology">
+      <p style="color: var(--text-muted); margin-bottom: 16px;" id="methodology-desc">
+        Each provider is scored from 0-100 based on weighted metrics. The benchmark measures the full lifecycle
+        of an AI agent interacting with a sandbox: authenticate, create, execute code, read/write files, and destroy.
+        When extended suites are run, a Capabilities weight is added and other weights are adjusted.
+      </p>
+      <div class="weight-bars" id="weight-bars"></div>
+      <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <p style="font-size: 13px; color: var(--text-muted);">
+          <strong style="color: var(--text);">Grades:</strong>
+          <span style="color:var(--grade-a);">A (85-100)</span> &middot;
+          <span style="color:var(--grade-b);">B (70-84)</span> &middot;
+          <span style="color:var(--grade-c);">C (55-69)</span> &middot;
+          <span style="color:var(--grade-d);">D (40-54)</span> &middot;
+          <span style="color:var(--grade-f);">F (0-39)</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="container">
+    <p>
+      <a href="https://github.com/zkwentz/sandbox-bench">sandbox-bench</a> &mdash;
+      Open source benchmarks for AI agent sandbox providers.
+      Run your own: <code style="background:var(--surface-2);padding:2px 6px;border-radius:4px;">pip install sandbox-bench && sandbox-bench run --all</code>
+    </p>
+  </div>
+</footer>
+
+<script>
+(function() {
+  const PATHS_TO_TRY = [
+    'results/',
+    '../results/',
+    './results/',
+  ];
+
+  // ── Tooltip definitions ──────────────────────────────────────────────
+  // Each entry: { def: "What it is", why: "Why it matters for RL / agents" }
+  const TIPS = {
+    // Scoring metrics
+    time: {
+      def: 'Wall-clock seconds for the full benchmark lifecycle (auth, create, execute, file I/O, destroy).',
+      why: 'Lower latency means more rollouts per hour in RL training loops. Agents that spin up sandboxes mid-conversation need sub-second times to feel interactive.',
+    },
+    'api calls': {
+      def: 'Number of distinct SDK/API calls required to complete all operations.',
+      why: 'Fewer calls = fewer tokens spent on tool-use formatting. Each extra round-trip adds latency and token cost to every RL episode.',
+    },
+    tool_calls: {
+      def: 'Number of distinct SDK/API calls required to complete all operations.',
+      why: 'Fewer calls = fewer tokens spent on tool-use formatting. Each extra round-trip adds latency and token cost to every RL episode.',
+    },
+    friction: {
+      def: 'Workarounds, retries, or unexpected behaviors the agent had to navigate.',
+      why: 'High friction wastes agent actions on error recovery instead of the task. In RL, friction inflates episode length and dilutes the reward signal.',
+    },
+    errors: {
+      def: 'Exceptions or failures during the benchmark run.',
+      why: 'Errors force agents into recovery paths and can cause entire RL episodes to fail. Reliable sandboxes mean higher episode completion rates and cleaner training signal.',
+    },
+    'sandbox cost': {
+      def: 'Provider-specific USD cost for sandbox runtime (not LLM tokens). Based on published per-second pricing.',
+      why: 'For RL at scale you run thousands of parallel episodes. A 10x cost difference compounds into budget-defining infrastructure decisions.',
+    },
+    cost: {
+      def: 'Provider-specific USD cost for sandbox runtime (not LLM tokens). Based on published per-second pricing.',
+      why: 'For RL at scale you run thousands of parallel episodes. A 10x cost difference compounds into budget-defining infrastructure decisions.',
+    },
+    discoverability: {
+      def: 'Quality of docs, MCP server availability, OpenAPI spec, llms.txt. Scored 1-5.',
+      why: 'Better discoverability lets an LLM agent self-onboard to the API with fewer examples. Critical for zero-shot tool use and reducing prompt engineering overhead.',
+    },
+    capabilities: {
+      def: 'Fraction of tested environment features supported (gcc, pip, git, Node.js, venv, etc.).',
+      why: 'More capabilities means the sandbox can handle diverse SWE-bench tasks without the agent needing to work around missing tools.',
+    },
+    score: {
+      def: 'Weighted composite of all metrics, 0-100. Higher is better.',
+      why: 'A single number to rank sandbox providers for agentic use cases. Weights are tuned for what matters most in RL and coding agent workflows.',
+    },
+
+    // Capabilities
+    stdin_piping: {
+      def: 'Pipe data to a running process via stdin.',
+      why: 'Required for competitive programming where test input is fed via stdin. Without it, agents must write input to files as a workaround.',
+    },
+    gcc: {
+      def: 'GCC C compiler available in the sandbox.',
+      why: 'Needed for C coding challenges, systems programming tasks, and building native extensions that agents may encounter.',
+    },
+    gpp: {
+      def: 'G++ C++ compiler available in the sandbox.',
+      why: 'Required for C++ competitive programming and many open-source projects with C++ build dependencies.',
+    },
+    exec_timeout: {
+      def: 'Server-side execution timeout enforcement. Kills processes that exceed the time limit.',
+      why: 'Prevents infinite loops from hanging the sandbox. Critical for RL where untrusted agent-generated code might loop forever, blocking the episode.',
+    },
+    python3: {
+      def: 'Python 3 runtime available in the sandbox.',
+      why: 'The baseline language for most AI/ML agent tasks, SWE-bench patches, and data science workflows.',
+    },
+    network_access: {
+      def: 'Outbound internet connectivity from inside the sandbox.',
+      why: 'Required for pip install, git clone, API calls. Many sandboxes restrict this for security, limiting what tasks agents can perform.',
+    },
+    pip_install: {
+      def: 'Python package installation via pip.',
+      why: 'Essential for SWE-bench tasks that need project dependencies. Without it, the sandbox is limited to Python stdlib.',
+    },
+    git_clone: {
+      def: 'Clone repositories from GitHub or other remotes.',
+      why: 'Core capability for SWE-bench-style tasks where agents check out code, apply patches, and run tests against real repos.',
+    },
+    pytest: {
+      def: 'pytest test framework execution.',
+      why: 'The standard for verifying code changes in SWE-bench. Agents need to run tests to validate their patches and get reward signal.',
+    },
+    nodejs: {
+      def: 'Node.js runtime available in the sandbox.',
+      why: 'Required for frontend/fullstack tasks, the npm ecosystem, and modern web projects that agents might need to build or test.',
+    },
+    npm: {
+      def: 'npm package manager for installing Node.js dependencies.',
+      why: 'Needed to set up JavaScript/TypeScript project dependencies. Without it, agents cannot work on Node.js codebases.',
+    },
+    project_clone: {
+      def: 'Clone and work with real-world project repositories.',
+      why: 'Tests whether the sandbox handles real codebases beyond toy examples\u2014the actual operating environment for SWE-bench agents.',
+    },
+    multi_step_build: {
+      def: 'Multi-step build pipeline: install deps, compile, run tests.',
+      why: 'The most demanding capability. Tests whether an agent can orchestrate a full development workflow end-to-end in a single sandbox.',
+    },
+    python_venv: {
+      def: 'Python virtual environment creation and use.',
+      why: 'Important for isolating project dependencies and avoiding package conflicts across different tasks in the same sandbox.',
+    },
+    warm_start: {
+      def: 'Speed of creating a second sandbox when the provider has cached/pre-warmed images.',
+      why: 'Represents steady-state latency in high-throughput RL training. Pre-warmed pools let you parallelize thousands of episodes.',
+    },
+
+    // Phases
+    authenticate: {
+      def: 'Validate API credentials with the sandbox provider.',
+      why: 'Auth latency is a fixed overhead on every RL episode. Providers with fast token validation reduce per-episode setup cost.',
+    },
+    create_sandbox: {
+      def: 'Provision and boot a new sandbox environment.',
+      why: 'Cold start time is the latency floor for every new RL episode. Sub-second cold starts enable real-time agentic coding assistants.',
+    },
+    execute: {
+      def: 'Run code inside the sandbox and capture stdout/stderr/exit code.',
+      why: 'The core action loop for coding agents: write code, execute, observe output. Execution latency directly bounds the agent\'s iteration speed.',
+    },
+    execute_hello: {
+      def: 'Run a hello-world Python script to verify basic execution works.',
+      why: 'Validates the most fundamental capability. If this fails, no agentic workflow can run on this provider.',
+    },
+    file_io: {
+      def: 'Write a file to the sandbox and read it back to verify correctness.',
+      why: 'Agents constantly read/write code files, configs, and test outputs. File I/O reliability and speed bounds multi-file SWE-bench tasks.',
+    },
+    destroy: {
+      def: 'Tear down the sandbox and release cloud resources.',
+      why: 'Clean teardown prevents resource leaks. In RL at scale, leaked sandboxes accumulate cost and can exhaust provider quotas.',
+    },
+
+    // Performance
+    cold_start: {
+      def: 'Time to create a fresh sandbox from scratch with no caching.',
+      why: 'This is the worst-case latency for every new RL episode. Sub-second cold starts enable real-time agentic coding assistants.',
+    },
+    warm_start_perf: {
+      def: 'Time to create a sandbox when the provider has cached/pre-warmed images.',
+      why: 'Represents steady-state latency during high-throughput RL training where sandboxes are continuously recycled.',
+    },
+    file_io_throughput: {
+      def: 'Megabytes per second for reading/writing files to the sandbox filesystem.',
+      why: 'Agents frequently write code, read logs, and transfer data. Low throughput bottlenecks multi-file SWE tasks and large repo operations.',
+    },
+
+    // Agent spawn
+    agent_spawn: {
+      def: 'Time from spawning a sub-agent to having its sandbox ready to execute code.',
+      why: 'In agentic architectures, a parent agent spawns child agents with their own sandboxes. This end-to-end latency determines how fast an agent can delegate and parallelize work.',
+    },
+  };
+
+  function tip(key, label) {
+    const t = TIPS[key] || TIPS[label.toLowerCase().replace(/ /g, '_')];
+    if (!t) return label;
+    return `<span class="tip">${label}<span class="tip-bubble"><div class="tip-title">${label}</div>${t.def}<div class="tip-why"><strong>Why it matters:</strong> ${t.why}</div></span></span>`;
+  }
+
+  // Position tooltips using fixed positioning to avoid overflow clipping
+  document.addEventListener('mouseover', function(e) {
+    const tipEl = e.target.closest('.tip');
+    if (!tipEl) return;
+    const bubble = tipEl.querySelector('.tip-bubble');
+    if (!bubble) return;
+
+    const rect = tipEl.getBoundingClientRect();
+    bubble.classList.add('visible');
+
+    // Position above the element by default
+    const bubbleRect = bubble.getBoundingClientRect();
+    let top = rect.top - bubbleRect.height - 8;
+    let left = rect.left + rect.width / 2 - bubbleRect.width / 2;
+
+    // Flip below if not enough space above
+    if (top < 8) {
+      top = rect.bottom + 8;
+    }
+
+    // Keep within viewport horizontally
+    if (left < 8) left = 8;
+    if (left + bubbleRect.width > window.innerWidth - 8) {
+      left = window.innerWidth - bubbleRect.width - 8;
+    }
+
+    bubble.style.top = top + 'px';
+    bubble.style.left = left + 'px';
+  });
+
+  document.addEventListener('mouseout', function(e) {
+    const tipEl = e.target.closest('.tip');
+    if (!tipEl) return;
+    const bubble = tipEl.querySelector('.tip-bubble');
+    if (bubble) {
+      bubble.classList.remove('visible');
+    }
+  });
+
+  // ── Utilities ────────────────────────────────────────────────────────
+
+  async function fetchJSON(url) {
+    try {
+      const r = await fetch(url);
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    } catch {
+      return null;
+    }
+  }
+
+  async function findBasePath() {
+    for (const p of PATHS_TO_TRY) {
+      const data = await fetchJSON(p + 'manifest.json');
+      if (data) return p;
+    }
+    return null;
+  }
+
+  function formatTime(seconds) {
+    if (seconds < 0.001) return '<1ms';
+    if (seconds < 1) return Math.round(seconds * 1000) + 'ms';
+    return seconds.toFixed(2) + 's';
+  }
+
+  function formatMs(ms) {
+    if (ms < 1) return '<1ms';
+    if (ms < 1000) return Math.round(ms) + 'ms';
+    return (ms / 1000).toFixed(2) + 's';
+  }
+
+  function gradeColor(grade) {
+    const colors = { A: '#3fb950', B: '#58a6ff', C: '#d29922', D: '#db6d28', F: '#f85149' };
+    return colors[grade] || '#8b949e';
+  }
+
+  function getCostDisplay(r) {
+    const cost = r.sandbox_cost_usd !== undefined ? r.sandbox_cost_usd : r.estimated_cost_usd;
+    if (cost < 0.01) return '$' + cost.toFixed(4);
+    return '$' + cost.toFixed(2);
+  }
+
+  // ── Renderers ────────────────────────────────────────────────────────
+
+  function renderScoreChart(results) {
+    const container = document.getElementById('score-chart');
+    const sorted = [...results].sort((a, b) => b.score - a.score);
+    const maxScore = 100;
+
+    container.innerHTML = sorted.map(r => `
+      <div class="chart-row">
+        <div class="chart-provider">${r.provider}</div>
+        <div class="chart-bar-container">
+          <div class="chart-bar grade-${r.grade}" style="width: ${(r.score / maxScore) * 100}%"></div>
+        </div>
+        <div class="chart-score" style="color: ${gradeColor(r.grade)}">${r.score}</div>
+      </div>
+    `).join('');
+
+    requestAnimationFrame(() => {
+      container.querySelectorAll('.chart-bar').forEach(bar => {
+        bar.style.width = bar.style.width;
+      });
+    });
+  }
+
+  function renderLeaderboard(results) {
+    const container = document.getElementById('leaderboard');
+    const sorted = [...results].sort((a, b) => b.score - a.score);
+
+    container.innerHTML = sorted.map((r, i) => {
+      const failed = !r.success;
+      const errorMsg = r.error_messages && r.error_messages.length > 0
+        ? r.error_messages[0] : '';
+      const capCount = r.capabilities ? Object.keys(r.capabilities).length : 0;
+      const capSupported = r.capabilities ? Object.values(r.capabilities).filter(v => v).length : 0;
+
+      return `
+        <div class="provider-card ${failed ? 'failed' : ''}" onclick="toggleTrace('trace-${i}')">
+          <div class="rank">#${i + 1}</div>
+          <div class="provider-info">
+            <div class="provider-name-row">
+              <span class="provider-name">${r.provider}</span>
+              <span class="grade-badge grade-${r.grade}">${r.grade}</span>
+              ${failed ? `<span class="error-tooltip" data-error="${errorMsg}" style="font-size:12px;color:var(--red);">Failed</span>` : ''}
+            </div>
+            <div class="provider-metrics">
+              <div class="metric">
+                <span class="metric-label">${tip('time', 'Time')}</span>
+                <span class="metric-value">${formatTime(r.total_time_seconds)}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">${tip('tool_calls', 'API Calls')}</span>
+                <span class="metric-value">${r.tool_calls}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">${tip('friction', 'Friction')}</span>
+                <span class="metric-value">${r.friction_points}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">${tip('errors', 'Errors')}</span>
+                <span class="metric-value ${r.errors > 0 ? 'status-fail' : 'status-pass'}">${r.errors}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">${tip('cost', 'Sandbox Cost')}</span>
+                <span class="metric-value">${getCostDisplay(r)}</span>
+              </div>
+              <div class="metric">
+                <span class="metric-label">${tip('discoverability', 'Discoverability')}</span>
+                <span class="metric-value">${r.discoverability_score}/5</span>
+              </div>
+              ${capCount > 0 ? `
+              <div class="metric">
+                <span class="metric-label">${tip('capabilities', 'Capabilities')}</span>
+                <span class="metric-value">${capSupported}/${capCount}</span>
+              </div>
+              ` : ''}
+            </div>
+            ${renderTrace(r.trace, i)}
+          </div>
+          <div class="score-display">
+            <div class="score-number" style="color: ${gradeColor(r.grade)}">${r.score}</div>
+            <div class="score-label">${tip('score', 'score')}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderTrace(trace, index) {
+    if (!trace || trace.length === 0) return '';
+
+    const maxDuration = Math.max(...trace.map(t => t.duration_ms), 1);
+
+    return `
+      <div class="trace-section" id="trace-${index}">
+        <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">Benchmark Phase Timeline (click card to toggle)</div>
+        <div class="trace-timeline">
+          ${trace.map(t => {
+            const height = Math.max(8, (t.duration_ms / maxDuration) * 60);
+            const label = t.action.replace(/_/g, ' ');
+            return `
+              <div class="trace-step">
+                <div class="trace-duration">${formatMs(t.duration_ms)}</div>
+                <div class="trace-bar ${t.success ? 'success' : 'failure'}" style="height: ${height}px"></div>
+                <div class="trace-label">${label}</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  window.toggleTrace = function(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active');
+  };
+
+  function renderBreakdown(results) {
+    const body = document.getElementById('breakdown-body');
+    const sorted = [...results].sort((a, b) => b.score - a.score);
+
+    body.innerHTML = sorted.map(r => `
+      <tr>
+        <td><div class="provider-cell"><span class="mini-grade grade-${r.grade}">${r.grade}</span> ${r.provider}</div></td>
+        <td class="${r.success ? 'status-pass' : 'status-fail'}">${r.success ? 'Pass' : 'Fail'}</td>
+        <td>${formatTime(r.total_time_seconds)}</td>
+        <td>${r.tool_calls}</td>
+        <td>${r.friction_points}</td>
+        <td class="${r.errors > 0 ? 'status-fail' : ''}">${r.errors}</td>
+        <td>${getCostDisplay(r)}</td>
+        <td>${r.discoverability_score}/5</td>
+        <td style="font-weight:600">${r.score}</td>
+        <td><span class="mini-grade grade-${r.grade}">${r.grade}</span></td>
+      </tr>
+    `).join('');
+  }
+
+  function renderBreakdownHeaders() {
+    const headerRow = document.querySelector('.breakdown-table thead tr');
+    if (!headerRow) return;
+    const headers = [
+      { key: null, label: 'Provider' },
+      { key: null, label: 'Status' },
+      { key: 'time', label: 'Time' },
+      { key: 'tool_calls', label: 'API Calls' },
+      { key: 'friction', label: 'Friction' },
+      { key: 'errors', label: 'Errors' },
+      { key: 'cost', label: 'Sandbox Cost' },
+      { key: 'discoverability', label: 'Discoverability' },
+      { key: 'score', label: 'Score' },
+      { key: null, label: 'Grade' },
+    ];
+    headerRow.innerHTML = headers.map(h =>
+      `<th>${h.key ? tip(h.key, h.label) : h.label}</th>`
+    ).join('');
+  }
+
+  function renderCapabilitiesMatrix(results) {
+    const section = document.getElementById('capabilities-section');
+    const table = document.getElementById('cap-matrix');
+
+    const allCaps = new Set();
+    results.forEach(r => {
+      if (r.capabilities) Object.keys(r.capabilities).forEach(c => allCaps.add(c));
+    });
+
+    if (allCaps.size === 0) {
+      section.style.display = 'none';
+      return;
+    }
+
+    section.style.display = '';
+    const caps = [...allCaps].sort();
+
+    let html = '<thead><tr><th>Provider</th>';
+    caps.forEach(c => {
+      const label = c.replace(/_/g, ' ');
+      html += `<th>${tip(c, label)}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+
+    const sorted = [...results].sort((a, b) => b.score - a.score);
+    sorted.forEach(r => {
+      html += `<tr><td><div class="provider-cell"><span class="mini-grade grade-${r.grade}">${r.grade}</span> ${r.provider}</div></td>`;
+      caps.forEach(c => {
+        if (!r.capabilities || r.capabilities[c] === undefined) {
+          html += '<td class="cap-na">-</td>';
+        } else if (r.capabilities[c]) {
+          html += '<td class="cap-yes">Y</td>';
+        } else {
+          html += '<td class="cap-no">N</td>';
+        }
+      });
+      html += '</tr>';
+    });
+    html += '</tbody>';
+
+    table.innerHTML = html;
+  }
+
+  function renderPerformanceMetrics(results) {
+    const section = document.getElementById('performance-section');
+    const grid = document.getElementById('perf-grid');
+
+    const hasColdStart = results.some(r => r.cold_start_seconds > 0);
+    const hasWarmStart = results.some(r => r.warm_start_seconds !== undefined && r.warm_start_seconds !== null);
+    const hasFileIO = results.some(r => r.file_io_throughput_mbps !== undefined && r.file_io_throughput_mbps !== null);
+    const hasAgentSpawn = results.some(r => r.agent_spawn_seconds !== undefined && r.agent_spawn_seconds !== null);
+
+    if (!hasColdStart && !hasWarmStart && !hasFileIO && !hasAgentSpawn) {
+      section.style.display = 'none';
+      return;
+    }
+
+    section.style.display = '';
+    const sorted = [...results].sort((a, b) => b.score - a.score);
+    let html = '';
+
+    // Cold vs Warm Start
+    if (hasColdStart) {
+      const maxStart = Math.max(...sorted.map(r => Math.max(r.cold_start_seconds || 0, r.warm_start_seconds || 0, r.agent_spawn_seconds || 0)), 0.1);
+      html += `<div class="perf-card"><h3>${tip('cold_start', 'Sandbox Start Time (seconds)')}</h3><div class="perf-rows">`;
+      sorted.forEach(r => {
+        const cold = r.cold_start_seconds || 0;
+        const warm = r.warm_start_seconds;
+        const spawn = r.agent_spawn_seconds;
+        const pct = (cold / maxStart) * 100;
+        html += `<div class="perf-row">
+          <div class="perf-label">${r.provider}</div>
+          <div class="perf-bar-track"><div class="perf-bar-fill" style="width:${pct}%;background:var(--accent)"></div></div>
+          <div class="perf-value">${cold.toFixed(2)}s</div>
+        </div>`;
+        if (warm !== undefined && warm !== null) {
+          const warmPct = (warm / maxStart) * 100;
+          html += `<div class="perf-row">
+            <div class="perf-label" style="font-size:11px;color:var(--text-muted)">&nbsp;&nbsp;${tip('warm_start_perf', 'warm')}</div>
+            <div class="perf-bar-track"><div class="perf-bar-fill" style="width:${warmPct}%;background:var(--green)"></div></div>
+            <div class="perf-value" style="color:var(--green)">${warm.toFixed(2)}s</div>
+          </div>`;
+        }
+        if (spawn !== undefined && spawn !== null) {
+          const spawnPct = (spawn / maxStart) * 100;
+          html += `<div class="perf-row">
+            <div class="perf-label" style="font-size:11px;color:var(--text-muted)">&nbsp;&nbsp;${tip('agent_spawn', 'agent spawn')}</div>
+            <div class="perf-bar-track"><div class="perf-bar-fill" style="width:${spawnPct}%;background:var(--yellow)"></div></div>
+            <div class="perf-value" style="color:var(--yellow)">${spawn.toFixed(2)}s</div>
+          </div>`;
+        }
+      });
+      html += '</div></div>';
+    }
+
+    // File I/O Throughput
+    if (hasFileIO) {
+      const maxTP = Math.max(...sorted.map(r => r.file_io_throughput_mbps || 0), 0.1);
+      html += `<div class="perf-card"><h3>${tip('file_io_throughput', 'File I/O Throughput (MB/s)')}</h3><div class="perf-rows">`;
+      sorted.forEach(r => {
+        const tp = r.file_io_throughput_mbps;
+        if (tp !== undefined && tp !== null) {
+          const pct = (tp / maxTP) * 100;
+          html += `<div class="perf-row">
+            <div class="perf-label">${r.provider}</div>
+            <div class="perf-bar-track"><div class="perf-bar-fill" style="width:${pct}%"></div></div>
+            <div class="perf-value">${tp.toFixed(1)}</div>
+          </div>`;
+        } else {
+          html += `<div class="perf-row">
+            <div class="perf-label">${r.provider}</div>
+            <div class="perf-bar-track"></div>
+            <div class="perf-value cap-na">-</div>
+          </div>`;
+        }
+      });
+      html += '</div></div>';
+    }
+
+    grid.innerHTML = html;
+  }
+
+  function renderPhaseTimings(results) {
+    const head = document.getElementById('phase-head');
+    const body = document.getElementById('phase-body');
+    const sorted = [...results].sort((a, b) => b.score - a.score);
+
+    const allPhases = [];
+    const phaseSet = new Set();
+    sorted.forEach(r => {
+      if (r.trace) {
+        r.trace.forEach(t => {
+          if (!phaseSet.has(t.action)) {
+            phaseSet.add(t.action);
+            allPhases.push(t.action);
+          }
+        });
+      }
+    });
+
+    // Build header with tooltips
+    let headerHtml = '<tr><th>Provider</th>';
+    allPhases.forEach(p => {
+      const label = p.replace(/_/g, ' ');
+      // Try exact key, then the base name (strip suite/ prefix)
+      const baseKey = p.includes('/') ? p.split('/').pop() : p;
+      headerHtml += `<th>${tip(baseKey, label)}</th>`;
+    });
+    headerHtml += '<th>Total</th></tr>';
+    head.innerHTML = headerHtml;
+
+    body.innerHTML = sorted.map(r => {
+      const timings = {};
+      let total = 0;
+      if (r.trace) {
+        r.trace.forEach(t => {
+          timings[t.action] = t.duration_ms;
+          total += t.duration_ms;
+        });
+      }
+      return `
+        <tr>
+          <td><div class="provider-cell"><span class="mini-grade grade-${r.grade}">${r.grade}</span> ${r.provider}</div></td>
+          ${allPhases.map(p => `<td>${timings[p] !== undefined ? formatMs(timings[p]) : '-'}</td>`).join('')}
+          <td style="font-weight:600">${total > 0 ? formatMs(total) : '-'}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function renderMethodologyWeights(results) {
+    const container = document.getElementById('weight-bars');
+    const hasCaps = results.some(r => r.capabilities && Object.keys(r.capabilities).length > 0);
+
+    const weights = hasCaps
+      ? [
+          { key: 'time', name: 'Time', pct: 25 },
+          { key: 'errors', name: 'Errors', pct: 20 },
+          { key: 'friction', name: 'Friction', pct: 15 },
+          { key: 'tool_calls', name: 'Tool Calls', pct: 10 },
+          { key: 'cost', name: 'Cost', pct: 10 },
+          { key: 'discoverability', name: 'Discoverability', pct: 10 },
+          { key: 'capabilities', name: 'Capabilities', pct: 10 },
+        ]
+      : [
+          { key: 'time', name: 'Time', pct: 30 },
+          { key: 'errors', name: 'Errors', pct: 20 },
+          { key: 'tool_calls', name: 'Tool Calls', pct: 15 },
+          { key: 'friction', name: 'Friction', pct: 15 },
+          { key: 'cost', name: 'Cost', pct: 10 },
+          { key: 'discoverability', name: 'Discoverability', pct: 10 },
+        ];
+
+    const maxPct = Math.max(...weights.map(w => w.pct));
+    container.innerHTML = weights.map(w => {
+      const t = TIPS[w.key];
+      const desc = t ? t.def : '';
+      return `
+      <div class="weight-item">
+        <div class="weight-header">
+          <span class="weight-name">${tip(w.key, w.name)}</span>
+          <span class="weight-pct">${w.pct}%</span>
+        </div>
+        <div class="weight-track"><div class="weight-fill" style="width:${(w.pct / maxPct) * 100}%"></div></div>
+        <span style="font-size:11px;color:var(--text-muted)">${desc}</span>
+      </div>
+    `}).join('');
+  }
+
+  // ── Main ─────────────────────────────────────────────────────────────
+
+  function renderAll(data) {
+    const config = data.config;
+    const results = data.results;
+
+    const suitesInfo = config.suites ? ` &middot; suites: ${config.suites.join(', ')}` : '';
+    document.getElementById('run-info').innerHTML =
+      `${results.length} providers &middot; ${config.runs} runs each &middot; best-of-N scoring${suitesInfo}`;
+
+    renderScoreChart(results);
+    renderLeaderboard(results);
+    renderBreakdownHeaders();
+    renderBreakdown(results);
+    renderCapabilitiesMatrix(results);
+    renderPerformanceMetrics(results);
+    renderPhaseTimings(results);
+    renderMethodologyWeights(results);
+  }
+
+  const EMBEDDED_DATA = {"config": {"providers": ["e2b", "daytona", "modal", "codesandbox", "fly", "vmvm"], "suites": ["full"], "agent_mode": false, "model": "claude-opus-4", "runs": 3}, "results": [{"provider": "e2b", "success": true, "total_time_seconds": 0.7252368927001953, "tool_calls": 5, "friction_points": 0, "errors": 0, "error_messages": [], "estimated_cost_usd": 7.3e-05, "sandbox_cost_usd": 7.3e-05, "discoverability_score": 4.5, "score": 97.4, "grade": "A", "trace": [{"timestamp": 1771865075.681982, "action": "authenticate", "duration_ms": 0.1857280731201172, "success": true, "details": {}}, {"timestamp": 1771865075.821874, "action": "create_sandbox", "duration_ms": 139.88804817199707, "success": true, "details": {"sandbox_id": "ii5mx37io9knl2nqif7u2"}}, {"timestamp": 1771865076.266689, "action": "basic/execute_hello", "duration_ms": 269.40393447875977, "success": true, "details": {"stdout": "Hello from sandbox-bench!\n", "stderr": "", "exit_code": 0}}, {"timestamp": 1771865076.2666938, "action": "basic/file_io", "duration_ms": 175.3861904144287, "success": true, "details": {}}, {"timestamp": 1771865076.4070258, "action": "destroy", "duration_ms": 140.32626152038574, "success": true, "details": {}}], "suites_run": ["basic"], "suite_results": {"basic": [{"name": "execute_hello", "success": true, "duration_seconds": 0.26940393447875977, "tool_calls": 1, "friction_points": 0, "errors": 0, "capability_tested": null, "capability_supported": null}, {"name": "file_io", "success": true, "duration_seconds": 0.1753861904144287, "tool_calls": 2, "friction_points": 0, "errors": 0, "capability_tested": null, "capability_supported": null}]}, "capabilities": {}, "capability_score": 0.0, "cold_start_seconds": 0.13988804817199707, "warm_start_seconds": null, "agent_spawn_seconds": null, "file_io_throughput_mbps": null}, {"provider": "daytona", "success": true, "total_time_seconds": 0.4792468547821045, "tool_calls": 6, "friction_points": 0, "errors": 0, "error_messages": [], "estimated_cost_usd": 7.2e-05, "sandbox_cost_usd": 7.2e-05, "discoverability_score": 3.5, "score": 95.2, "grade": "A", "trace": [{"timestamp": 1771865086.6737669, "action": "authenticate", "duration_ms": 2.1119117736816406, "success": true, "details": {}}, {"timestamp": 1771865086.801507, "action": "create_sandbox", "duration_ms": 127.73609161376953, "success": true, "details": {"sandbox_id": "dbdbf7a9-1662-42c8-8718-77c7b7cd1485"}}, {"timestamp": 1771865087.076769, "action": "basic/execute_hello", "duration_ms": 139.56093788146973, "success": true, "details": {"stdout": "Hello from sandbox-bench!", "stderr": "", "exit_code": 0}}, {"timestamp": 1771865087.076774, "action": "basic/file_io", "duration_ms": 135.6799602508545, "success": true, "details": {}}, {"timestamp": 1771865087.150898, "action": "destroy", "duration_ms": 74.11980628967285, "success": true, "details": {}}], "suites_run": ["basic"], "suite_results": {"basic": [{"name": "execute_hello", "success": true, "duration_seconds": 0.13956093788146973, "tool_calls": 1, "friction_points": 0, "errors": 0, "capability_tested": null, "capability_supported": null}, {"name": "file_io", "success": true, "duration_seconds": 0.1356799602508545, "tool_calls": 2, "friction_points": 0, "errors": 0, "capability_tested": null, "capability_supported": null}]}, "capabilities": {}, "capability_score": 0.0, "cold_start_seconds": 0.12773609161376953, "warm_start_seconds": null, "agent_spawn_seconds": null, "file_io_throughput_mbps": null}, {"provider": "modal", "success": true, "total_time_seconds": 1.5437171459197998, "tool_calls": 6, "friction_points": 0, "errors": 0, "error_messages": [], "estimated_cost_usd": 0.000253, "sandbox_cost_usd": 0.000253, "discoverability_score": 3.5, "score": 95.0, "grade": "A", "trace": [{"timestamp": 1771865095.339984, "action": "authenticate", "duration_ms": 0.00286102294921875, "success": true, "details": {}}, {"timestamp": 1771865095.539225, "action": "create_sandbox", "duration_ms": 199.23830032348633, "success": true, "details": {"sandbox_id": "sb-WeTOJXBGimxFNYmHkU7oN5"}}, {"timestamp": 1771865096.834058, "action": "basic/execute_hello", "duration_ms": 1124.1521835327148, "success": true, "details": {"stdout": "Hello from sandbox-bench!\n", "stderr": "", "exit_code": 0}}, {"timestamp": 1771865096.834063, "action": "basic/file_io", "duration_ms": 170.66121101379395, "success": true, "details": {}}, {"timestamp": 1771865096.883691, "action": "destroy", "duration_ms": 49.6220588684082, "success": true, "details": {}}], "suites_run": ["basic"], "suite_results": {"basic": [{"name": "execute_hello", "success": true, "duration_seconds": 1.1241521835327148, "tool_calls": 1, "friction_points": 0, "errors": 0, "capability_tested": null, "capability_supported": null}, {"name": "file_io", "success": true, "duration_seconds": 0.17066121101379395, "tool_calls": 2, "friction_points": 0, "errors": 0, "capability_tested": null, "capability_supported": null}]}, "capabilities": {}, "capability_score": 0.0, "cold_start_seconds": 0.19923830032348633, "warm_start_seconds": null, "agent_spawn_seconds": null, "file_io_throughput_mbps": null}, {"provider": "codesandbox", "success": true, "total_time_seconds": 19.2799129486084, "tool_calls": 10, "friction_points": 0, "errors": 0, "error_messages": [], "estimated_cost_usd": 0.00536, "sandbox_cost_usd": 0.00536, "discoverability_score": 3.5, "score": 92.1, "grade": "A", "trace": [{"timestamp": 1771865160.9898088, "action": "authenticate", "duration_ms": 204.04314994812012, "success": true, "details": {}}, {"timestamp": 1771865162.997973, "action": "create_sandbox", "duration_ms": 2008.1570148468018, "success": true, "details": {"sandbox_id": "q8xgyf"}}, {"timestamp": 1771865163.512345, "action": "basic/execute_hello", "duration_ms": 410.7069969177246, "success": true, "details": {"stdout": "[CODESANDBOX] Preparing devcontainer configuration and overrides\r\nHello from sandbox-bench!\r\n", "stderr": "", "exit_code": 0}}, {"timestamp": 1771865163.512349, "action": "basic/file_io", "duration_ms": 103.6369800567627, "success": true, "details": {}}, {"timestamp": 1771865180.065666, "action": "destroy", "duration_ms": 16553.312063217163, "success": true, "details": {}}], "suites_run": ["basic"], "suite_results": {"basic": [{"name": "execute_hello", "success": true, "duration_seconds": 0.4107069969177246, "tool_calls": 1, "friction_points": 0, "errors": 0, "capability_tested": null, "capability_supported": null}, {"name": "file_io", "success": true, "duration_seconds": 0.1036369800567627, "tool_calls": 2, "friction_points": 0, "errors": 0, "capability_tested": null, "capability_supported": null}]}, "capabilities": {}, "capability_score": 0.0, "cold_start_seconds": 2.0081570148468018, "warm_start_seconds": null, "agent_spawn_seconds": null, "file_io_throughput_mbps": null}, {"provider": "fly", "success": false, "total_time_seconds": 0.07876420021057129, "tool_calls": 0, "friction_points": 0, "errors": 1, "error_messages": ["Auth failed: Client error '401 Unauthorized' for url 'https://api.machines.dev/v1/apps?org_slug=personal'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"], "estimated_cost_usd": 1e-06, "sandbox_cost_usd": 1e-06, "discoverability_score": 3.5, "score": 0.0, "grade": "F", "trace": [{"timestamp": 1771865180.4994051, "action": "authenticate", "duration_ms": 78.7498950958252, "success": false, "details": {"error": "Client error '401 Unauthorized' for url 'https://api.machines.dev/v1/apps?org_slug=personal'\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401"}}], "suites_run": ["basic"], "suite_results": {}, "capabilities": {}, "capability_score": 0.0, "cold_start_seconds": 0.0, "warm_start_seconds": null, "agent_spawn_seconds": null, "file_io_throughput_mbps": null}, {"provider": "vmvm", "success": true, "total_time_seconds": 174.07025957107544, "tool_calls": 53, "friction_points": 5, "errors": 0, "error_messages": [], "estimated_cost_usd": 0.0, "sandbox_cost_usd": 0.0, "discoverability_score": 3.5, "score": 54.4, "grade": "D", "trace": [{"timestamp": 1772122407.90164, "action": "authenticate", "duration_ms": 224.8678207397461, "success": true, "details": {}}, {"timestamp": 1772122408.8093245, "action": "create_sandbox", "duration_ms": 907.6700210571289, "success": true, "details": {"sandbox_id": "019c9ab9-e99c-74a3-ac85-6217dc8b658a"}}, {"timestamp": 1772122409.6613107, "action": "basic/execute_hello", "duration_ms": 135.29419898986816, "success": true, "details": {"stdout": "Hello from sandbox-bench!\n", "stderr": "", "exit_code": 0}}, {"timestamp": 1772122409.6613178, "action": "basic/file_io", "duration_ms": 716.6469097137451, "success": true, "details": {}}, {"timestamp": 1772122421.7294393, "action": "competitive/stdin_piping", "duration_ms": 107.27167129516602, "success": true, "details": {"stdout": "8\n", "stderr": "", "exit_code": 0}}, {"timestamp": 1772122421.729447, "action": "competitive/gcc_compilation", "duration_ms": 655.245304107666, "success": true, "details": {"stdout": "hello-c\n", "stderr": "", "exit_code": 0}}, {"timestamp": 1772122421.7294512, "action": "competitive/cpp_compilation", "duration_ms": 1018.2991027832031, "success": true, "details": {"stdout": "hello-cpp\n", "stderr": "", "exit_code": 0}}, {"timestamp": 1772122421.7294548, "action": "competitive/exec_timeout", "duration_ms": 10154.406785964966, "success": false, "details": {"stdout": "done\n", "stderr": "", "exit_code": 0, "elapsed": 10.154406785964966}}, {"timestamp": 1772122421.729457, "action": "competitive/python_version", "duration_ms": 132.7991485595703, "success": true, "details": {"version": "Python 3.9.25"}}, {"timestamp": 1772122424.0915432, "action": "swe/network_access", "duration_ms": 506.52480125427246, "success": true, "details": {"stdout": "200\n", "stderr": "", "exit_code": 0}}, {"timestamp": 1772122424.091555, "action": "swe/pip_install", "duration_ms": 133.46099853515625, "success": false, "details": {"stdout": "", "stderr": "bash: line 1: pip: command not found\n", "exit_code": 127}}, {"timestamp": 1772122424.0915606, "action": "swe/git_clone", "duration_ms": 1185.9772205352783, "success": true, "details": {"stdout": "Cloning into '/tmp/flask-test'...\n", "stderr": "", "exit_code": 0}}, {"timestamp": 1772122424.0915647, "action": "swe/pytest_run", "duration_ms": 536.041259765625, "success": false, "details": {"stdout": "/usr/bin/python3: No module named pytest\n", "stderr": "", "exit_code": 1}}, {"timestamp": 1772122430.4567962, "action": "environment/node_available", "duration_ms": 134.82117652893066, "success": false, "details": {"version": ""}}, {"timestamp": 1772122430.4568033, "action": "environment/npm_install", "duration_ms": 577.0659446716309, "success": false, "details": {"stdout": "bash: line 1: npm: command not found\n", "exit_code": 127}}, {"timestamp": 1772122430.4568071, "action": "environment/project_clone", "duration_ms": 1055.0522804260254, "success": true, "details": {"stdout": "Cloning into '/tmp/express-test'...\n", "exit_code": 0}}, {"timestamp": 1772122430.4568102, "action": "environment/multi_step_build", "duration_ms": 134.11283493041992, "success": true, "details": {"stdout": "bash: line 1: npm: command not found\nbash: line 1: npm: command not found\n", "exit_code": 0}}, {"timestamp": 1772122430.4568126, "action": "environment/python_venv", "duration_ms": 4464.091062545776, "success": true, "details": {"stdout": "WARNING: You are using pip version 21.3.1; however, version 26.0.1 is available.\nYou should consider upgrading via the '/tmp/test-venv/bin/python3 -m pip install --upgrade pip' command.\n3.1.3\n", "exit_code": 0}}, {"timestamp": 1772122581.382751, "action": "performance/agent_spawn", "duration_ms": 1069.7345733642578, "success": true, "details": {"agent_spawn_seconds": 1.0697, "create_seconds": 0.9305, "first_exec_seconds": 0.1392}}, {"timestamp": 1772122581.382758, "action": "performance/warm_start", "duration_ms": 917.2537326812744, "success": true, "details": {"warm_start_seconds": 0.9172537326812744}}, {"timestamp": 1772122581.382762, "action": "performance/file_io_1mb_write", "duration_ms": 2182.2309494018555, "success": true, "details": {"size_mb": 1, "throughput_mbps": 0.46}}, {"timestamp": 1772122581.3827765, "action": "performance/file_io_1mb_read", "duration_ms": 11722.548484802246, "success": true, "details": {"size_mb": 1.0, "throughput_mbps": 0.09}}, {"timestamp": 1772122581.3827791, "action": "performance/file_io_10mb", "duration_ms": 133123.26192855835, "success": true, "details": {"write_mbps": 0.54, "read_mbps": 0.09, "write_seconds": 18.381, "read_seconds": 114.739}}, {"timestamp": 1772122581.382782, "action": "performance/rapid_exec", "duration_ms": 1380.906343460083, "success": true, "details": {"avg_latency_ms": 138.1, "min_latency_ms": 132.7, "max_latency_ms": 172.7, "iterations": 10, "failures": 0}}, {"timestamp": 1772122581.747005, "action": "destroy", "duration_ms": 364.2151355743408, "success": true, "details": {}}], "suites_run": ["basic", "competitive", "swe", "environment", "performance"], "suite_results": {"basic": [{"name": "execute_hello", "success": true, "duration_seconds": 0.13529419898986816, "tool_calls": 1, "friction_points": 0, "errors": 0, "capability_tested": null, "capability_supported": null}, {"name": "file_io", "success": true, "duration_seconds": 0.7166469097137451, "tool_calls": 2, "friction_points": 0, "errors": 0, "capability_tested": null, "capability_supported": null}], "competitive": [{"name": "stdin_piping", "success": true, "duration_seconds": 0.10727167129516602, "tool_calls": 1, "friction_points": 0, "errors": 0, "capability_tested": "stdin_piping", "capability_supported": true}, {"name": "gcc_compilation", "success": true, "duration_seconds": 0.655245304107666, "tool_calls": 2, "friction_points": 0, "errors": 0, "capability_tested": "gcc", "capability_supported": true}, {"name": "cpp_compilation", "success": true, "duration_seconds": 1.0182991027832031, "tool_calls": 2, "friction_points": 0, "errors": 0, "capability_tested": "gpp", "capability_supported": true}, {"name": "exec_timeout", "success": false, "duration_seconds": 10.154406785964966, "tool_calls": 1, "friction_points": 1, "errors": 0, "capability_tested": "exec_timeout", "capability_supported": false}, {"name": "python_version", "success": true, "duration_seconds": 0.1327991485595703, "tool_calls": 1, "friction_points": 0, "errors": 0, "capability_tested": "python3", "capability_supported": true}], "swe": [{"name": "network_access", "success": true, "duration_seconds": 0.5065248012542725, "tool_calls": 1, "friction_points": 0, "errors": 0, "capability_tested": "network_access", "capability_supported": true}, {"name": "pip_install", "success": false, "duration_seconds": 0.13346099853515625, "tool_calls": 1, "friction_points": 1, "errors": 0, "capability_tested": "pip_install", "capability_supported": false}, {"name": "git_clone", "success": true, "duration_seconds": 1.1859772205352783, "tool_calls": 1, "friction_points": 0, "errors": 0, "capability_tested": "git_clone", "capability_supported": true}, {"name": "pytest_run", "success": false, "duration_seconds": 0.536041259765625, "tool_calls": 2, "friction_points": 1, "errors": 0, "capability_tested": "pytest", "capability_supported": false}], "environment": [{"name": "node_available", "success": false, "duration_seconds": 0.13482117652893066, "tool_calls": 1, "friction_points": 1, "errors": 0, "capability_tested": "nodejs", "capability_supported": false}, {"name": "npm_install", "success": false, "duration_seconds": 0.5770659446716309, "tool_calls": 2, "friction_points": 1, "errors": 0, "capability_tested": "npm", "capability_supported": false}, {"name": "project_clone", "success": true, "duration_seconds": 1.0550522804260254, "tool_calls": 1, "friction_points": 0, "errors": 0, "capability_tested": "project_clone", "capability_supported": true}, {"name": "multi_step_build", "success": true, "duration_seconds": 0.13411283493041992, "tool_calls": 1, "friction_points": 0, "errors": 0, "capability_tested": "multi_step_build", "capability_supported": true}, {"name": "python_venv", "success": true, "duration_seconds": 4.464091062545776, "tool_calls": 1, "friction_points": 0, "errors": 0, "capability_tested": "python_venv", "capability_supported": true}], "performance": [{"name": "agent_spawn", "success": true, "duration_seconds": 1.0697345733642578, "tool_calls": 3, "friction_points": 0, "errors": 0, "capability_tested": "agent_spawn", "capability_supported": true}, {"name": "warm_start", "success": true, "duration_seconds": 0.9172537326812744, "tool_calls": 2, "friction_points": 0, "errors": 0, "capability_tested": "warm_start", "capability_supported": true}, {"name": "file_io_1mb_write", "success": true, "duration_seconds": 2.1822309494018555, "tool_calls": 1, "friction_points": 0, "errors": 0, "capability_tested": null, "capability_supported": null}, {"name": "file_io_1mb_read", "success": true, "duration_seconds": 11.722548484802246, "tool_calls": 1, "friction_points": 0, "errors": 0, "capability_tested": null, "capability_supported": null}, {"name": "file_io_10mb", "success": true, "duration_seconds": 133.12326192855835, "tool_calls": 2, "friction_points": 0, "errors": 0, "capability_tested": null, "capability_supported": null}, {"name": "rapid_exec", "success": true, "duration_seconds": 1.380906343460083, "tool_calls": 10, "friction_points": 0, "errors": 0, "capability_tested": null, "capability_supported": null}]}, "capabilities": {"stdin_piping": true, "gcc": true, "gpp": true, "exec_timeout": false, "python3": true, "network_access": true, "pip_install": false, "git_clone": true, "pytest": false, "nodejs": false, "npm": false, "project_clone": true, "multi_step_build": true, "python_venv": true, "agent_spawn": true, "warm_start": true}, "capability_score": 0.6875, "cold_start_seconds": 0.9076700210571289, "warm_start_seconds": 0.9172537326812744, "agent_spawn_seconds": 1.0697, "file_io_throughput_mbps": 0.46}]};
+  const MANIFEST = {"dates": ["2026-02-26"], "latest": "2026-02-26"};
+
+  async function init() {
+    const select = document.getElementById('date-select');
+    MANIFEST.dates.sort().reverse().forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d;
+      if (d === MANIFEST.latest) opt.selected = true;
+      select.appendChild(opt);
+    });
+    renderAll(EMBEDDED_DATA);
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
